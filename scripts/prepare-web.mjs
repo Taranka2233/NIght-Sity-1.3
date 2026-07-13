@@ -17,7 +17,7 @@ await build({
   legalComments: 'none',
   format: 'iife',
   platform: 'browser',
-  target: ['chrome120'],
+  target: ['chrome80'],
 });
 
 const indexInfo = await stat(resolve(webDir, 'index.html'));

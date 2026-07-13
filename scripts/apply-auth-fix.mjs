@@ -3,7 +3,15 @@ import { readFile, writeFile } from 'node:fs/promises';
 const file = new URL('../index.html', import.meta.url);
 let html = await readFile(file, 'utf8');
 
-html = html.replaceAll('2.077.202', '2.077.203');
+html = html.replaceAll('2.077.202', '2.077.204').replaceAll('2.077.203', '2.077.204');
+
+if (!html.includes('<script src="./firebase-bundle.js"></script>')) {
+  const configStart = html.indexOf('<script>window.FIREBASE_CONFIG');
+  const configEnd = configStart >= 0 ? html.indexOf('</script>', configStart) : -1;
+  if (configEnd < 0) throw new Error('Cannot install local Firebase bundle: config block not found');
+  const insertAt = configEnd + '</script>'.length;
+  html = html.slice(0, insertAt) + '\n<script src="./firebase-bundle.js"></script>' + html.slice(insertAt);
+}
 
 if (!html.includes("firebaseErrorMessage = (error, fallback = 'ОШИБКА FIREBASE')")) {
   const replaceBlock = (before, after, label) => {
@@ -51,6 +59,8 @@ if (!html.includes("firebaseErrorMessage = (error, fallback = 'ОШИБКА FIRE
     if (raw.includes('invalid-email')) return 'НЕВЕРНЫЙ EMAIL';
     if (raw.includes('operation-not-allowed')) return 'ВКЛЮЧИ EMAIL/PASSWORD В FIREBASE';
     if (raw.includes('too-many-requests')) return 'СЛИШКОМ МНОГО ПОПЫТОК · ПОДОЖДИ';
+    if (raw.includes('failed to fetch dynamically') || raw.includes('firebase bundle')) return 'НЕ ЗАГРУЗИЛСЯ МОДУЛЬ FIREBASE';
+    if (raw.includes('failed to fetch') || raw.includes('webview_xhr_failed')) return 'ANDROID WEBVIEW НЕ ПОДКЛЮЧИЛСЯ К FIREBASE';
     if (raw.includes('network') || raw.includes('unavailable')) return 'НЕТ СВЯЗИ С FIREBASE';
     if (raw.includes('permission-denied')) return 'FIRESTORE: НЕТ ДОСТУПА ПО ПРАВИЛАМ';
     if (raw.includes('failed-precondition')) return 'FIRESTORE: НУЖЕН ИНДЕКС ИЛИ НАСТРОЙКА';

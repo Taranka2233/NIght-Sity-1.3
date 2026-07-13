@@ -1,13 +1,13 @@
 {
   "name": "night-city-net",
-  "version": "2.77.203",
+  "version": "2.77.204",
   "description": "Найт-Сити Нет — мессенджер в стиле Cyberpunk 2077",
   "type": "module",
   "private": true,
   "scripts": {
     "prepare:web": "node scripts/apply-auth-fix.mjs && node scripts/prepare-web.mjs",
     "verify": "node scripts/apply-auth-fix.mjs && node scripts/verify-project.mjs && node --check worker.js && python3 -m py_compile setup_calls.py setup_icons.py",
-    "test": "node --test test/worker.test.mjs",
+    "test": "node --test test/worker.test.mjs test/firebase-fetch-fallback.test.mjs",
     "test:rules": "npx --yes firebase-tools@15.23.0 emulators:exec --only firestore --project demo-night-city \"node --test test/firestore.rules.test.mjs\"",
     "android:configure": "python3 setup_icons.py && python3 setup_calls.py",
     "android:sync": "npm run prepare:web && npx cap sync android && npm run android:configure",

@@ -1,3 +1,4 @@
+import './firebase-fetch-fallback.mjs';
 import * as appMod from 'firebase/app';
 import * as authMod from 'firebase/auth';
 import * as fsMod from 'firebase/firestore';
