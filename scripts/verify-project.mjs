@@ -10,6 +10,7 @@ const required = [
   'capacitor.config.json',
   'setup_calls.py',
   'setup_icons.py',
+  'scripts/apply-auth-fix.mjs',
 ];
 
 for (const file of required) await access(file);

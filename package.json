@@ -5,8 +5,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "prepare:web": "node scripts/prepare-web.mjs",
-    "verify": "node scripts/verify-project.mjs && node --check worker.js && python3 -m py_compile setup_calls.py setup_icons.py",
+    "prepare:web": "node scripts/apply-auth-fix.mjs && node scripts/prepare-web.mjs",
+    "verify": "node scripts/apply-auth-fix.mjs && node scripts/verify-project.mjs && node --check worker.js && python3 -m py_compile setup_calls.py setup_icons.py",
     "test": "node --test test/worker.test.mjs",
     "test:rules": "npx --yes firebase-tools@15.23.0 emulators:exec --only firestore --project demo-night-city \"node --test test/firestore.rules.test.mjs\"",
     "android:configure": "python3 setup_icons.py && python3 setup_calls.py",
