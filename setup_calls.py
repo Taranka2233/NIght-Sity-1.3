@@ -46,6 +46,7 @@ public class CallMessagingService extends com.google.firebase.messaging.Firebase
         String fromName = data.get("fromName"); if (fromName == null) fromName = "Абонент";
         String callType = data.get("callType"); if (callType == null) callType = "audio";
         String fromUid = data.get("fromUid"); if (fromUid == null) fromUid = "";
+        String callId = data.get("callId"); if (callId == null) callId = "";
 
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= 26) {
@@ -61,6 +62,7 @@ public class CallMessagingService extends com.google.firebase.messaging.Firebase
         full.putExtra("fromName", fromName);
         full.putExtra("callType", callType);
         full.putExtra("fromUid", fromUid);
+        full.putExtra("callId", callId);
         full.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         int piFlags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= 23) piFlags |= PendingIntent.FLAG_IMMUTABLE;
@@ -122,6 +124,7 @@ public class IncomingCallActivity extends Activity {
         String fromName = getIntent().getStringExtra("fromName"); if (fromName == null) fromName = "Абонент";
         String callType = getIntent().getStringExtra("callType"); if (callType == null) callType = "audio";
         final String fromUid = getIntent().getStringExtra("fromUid");
+        final String callId = getIntent().getStringExtra("callId");
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -170,7 +173,7 @@ public class IncomingCallActivity extends Activity {
             Intent i = getPackageManager().getLaunchIntentForPackage(getPackageName());
             if (i != null) {
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                i.setData(Uri.parse("nightcity://accept?from=" + (fromUid == null ? "" : fromUid)));
+                i.setData(Uri.parse("nightcity://accept?from=" + (fromUid == null ? "" : fromUid) + "&callId=" + (callId == null ? "" : callId)));
                 startActivity(i);
             }
             finish();

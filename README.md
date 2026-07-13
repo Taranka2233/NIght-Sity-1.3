@@ -1,5 +1,7 @@
 # Найт-Сити Нет — Cyberpunk мессенджер
 
+Текущая рабочая сборка берёт интерфейс из `app.html`. Это Firebase-версия с регистрацией, живыми личными чатами, регистрацией FCM-токена, защищённым запросом push-звонка и встроенными играми.
+
 Мессенджер в стиле Cyberpunk 2077. Собирается в Android APK автоматически через GitHub Actions.
 
 ## Как получить APK
@@ -12,7 +14,9 @@
 
 ## Структура
 
-- `index.html` — само приложение (одним файлом, всё внутри).
+- `app.html` — основное приложение (один HTML-файл, всё внутри); workflow копирует его в APK как `www/index.html`.
+- `firestore.rules` — правила доступа Firestore для личных чатов и звонков.
+- `cloudflare-worker.js` — защищённый FCM Worker; деплоится в Cloudflare вручную после задания секретов.
 - `.github/workflows/build-apk.yml` — конвейер сборки APK (Capacitor + Gradle).
 - `capacitor.config.json`, `package.json` — конфигурация Capacitor и плагины.
 - `setup_icons.py` — добавляет динамические иконки приложения (как в Telegram).

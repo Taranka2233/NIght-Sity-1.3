@@ -29,9 +29,12 @@ jobs:
       - name: Prepare web assets
         run: |
           mkdir -p www
-          if [ -f index.html ]; then cp index.html www/index.html;
+          if [ -f app.html ]; then cp app.html www/index.html;
+          elif [ -f index.html ]; then cp index.html www/index.html;
           elif [ -f index-1.html ]; then cp index-1.html www/index.html;
           elif [ -f index1.html ]; then cp index1.html www/index.html; fi
+          if [ -f cyber2048.html ]; then cp cyber2048.html www/cyber2048.html; fi
+          if [ -f netrunner2.html ]; then cp netrunner2.html www/netrunner2.html; fi
           mkdir -p resources
           if [ -f icon.png ]; then cp icon.png resources/icon.png; fi
           if [ -f splash.png ]; then cp splash.png resources/splash.png; fi

@@ -21,3 +21,7 @@ __pycache__/
 *.iml
 Thumbs.db
 Desktop.ini
+
+# Reference exports and recordings kept outside the app bundle
+template_fixed.html
+video_*.mp4
