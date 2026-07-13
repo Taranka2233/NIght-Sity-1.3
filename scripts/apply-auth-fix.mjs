@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const file = new URL('../index.html', import.meta.url);
 let html = await readFile(file, 'utf8');
 
-html = html.replaceAll('2.077.202', '2.077.204').replaceAll('2.077.203', '2.077.204');
+html = html.replaceAll('2.077.202', '2.077.205').replaceAll('2.077.203', '2.077.205').replaceAll('2.077.204', '2.077.205');
 
 if (!html.includes('<script src="./firebase-bundle.js"></script>')) {
   const configStart = html.indexOf('<script>window.FIREBASE_CONFIG');
@@ -128,6 +128,115 @@ if (!html.includes("firebaseErrorMessage = (error, fallback = 'ОШИБКА FIRE
     }`,
     'auth diagnostics fix',
   );
+}
+
+if (!html.includes("_pushErrorMessage = (code, status) =>")) {
+  const start = html.indexOf("  _pushUrl = 'https://nightcity-push.konovalova-2017.workers.dev/';");
+  const end = start >= 0 ? html.indexOf('  _startCallListener = () => {', start) : -1;
+  if (start < 0 || end < 0) throw new Error('Cannot apply push diagnostics fix: source block not found');
+  const replacement = String.raw`  _pushUrl = 'https://nightcity-push.konovalova-2017.workers.dev/';
+  _pushErrorMessage = (code, status) => {
+    const value = String(code || '').toLowerCase();
+    if (value === 'target_not_registered') return 'У получателя не включены push-уведомления';
+    if (value === 'fcm_token_invalid') return 'Push-токен получателя устарел · пусть откроет приложение';
+    if (value === 'fcm_rejected') return 'Firebase отклонил push · проверь Cloud Messaging API';
+    if (value === 'not_configured') return 'Cloudflare Worker не настроен';
+    if (value === 'unauthorized') return 'Сессия Firebase устарела · войди заново';
+    if (value === 'not_in_same_chat' || value === 'invalid_call') return 'Сервер отклонил данные звонка';
+    if (value === 'failed_to_fetch' || value === 'network_error') return 'Нет связи с сервером push';
+    return 'Push не доставлен' + (status ? ' · HTTP ' + status : '');
+  };
+  _sendCallPush = async (uid, kind, callId, chatId) => {
+    try {
+      const idToken = await NC.getIdToken();
+      const response = await fetch(this._pushUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idToken,
+          toUid: uid,
+          chatId,
+          callId,
+          callType: kind,
+        })
+      });
+      let result = {};
+      try { result = await response.json(); } catch (e) {}
+      if (!response.ok || !result.ok) {
+        const error = new Error((result && result.error) || ('HTTP_' + response.status));
+        error.pushCode = (result && result.error) || '';
+        error.httpStatus = response.status;
+        throw error;
+      }
+      return true;
+    } catch (e) {
+      const raw = String((e && (e.pushCode || e.message)) || 'network_error');
+      const code = raw.toLowerCase().includes('failed to fetch') ? 'failed_to_fetch' : raw;
+      console.error('Call push failed', { code, status: e && e.httpStatus });
+      this._toast(this._pushErrorMessage(code, e && e.httpStatus));
+      return false;
+    }
+  };
+  _savePushToken = async (token) => {
+    const value = String((token && token.value) || token || '').trim();
+    if (!value || !this._myUid) throw new Error('PUSH_TOKEN_EMPTY');
+    this._fcmToken = value;
+    await NC.savePrivate(this._myUid, 'push', { fcmToken: value, updatedAt: Date.now(), platform: 'android' });
+    const saved = await NC.getPrivate(this._myUid, 'push');
+    if (!saved || saved.fcmToken !== value) throw new Error('PUSH_TOKEN_NOT_SAVED');
+    return value;
+  };
+  _registerPush = async () => {
+    try {
+      const PN = this.plugin('PushNotifications');
+      if (!PN) return;
+      if (!this._pushInit) {
+        this._pushInit = true;
+        await PN.addListener('registration', (token) => {
+          this._savePushToken(token).then(() => {
+            if (this._pushRegistrationResolve) this._pushRegistrationResolve(true);
+          }).catch((error) => {
+            console.error('Push token persistence failed', error);
+            if (this._pushRegistrationReject) this._pushRegistrationReject(error);
+          });
+        });
+        await PN.addListener('registrationError', (error) => {
+          console.error('FCM registration failed', error);
+          if (this._pushRegistrationReject) this._pushRegistrationReject(error || new Error('FCM_REGISTRATION_FAILED'));
+        });
+        await PN.addListener('pushNotificationReceived', () => { try { this._startCallListener(); } catch (e) {} });
+        await PN.addListener('pushNotificationActionPerformed', () => { try { this._startCallListener(); } catch (e) {} });
+      }
+      let perm = await PN.checkPermissions();
+      if (perm.receive !== 'granted') perm = await PN.requestPermissions();
+      if (perm.receive !== 'granted') {
+        this._toast('Разреши уведомления, чтобы принимать звонки');
+        return;
+      }
+      const registered = new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('FCM_REGISTRATION_TIMEOUT')), 12000);
+        this._pushRegistrationResolve = (value) => { clearTimeout(timer); resolve(value); };
+        this._pushRegistrationReject = (error) => { clearTimeout(timer); reject(error); };
+      });
+      await PN.register();
+      await registered;
+      this._pushRegistrationResolve = null;
+      this._pushRegistrationReject = null;
+      try {
+        const LN = this.plugin('LocalNotifications');
+        if (LN && LN.createChannel) {
+          await LN.createChannel({ id: 'calls', name: 'Звонки', description: 'Входящие звонки', importance: 5, visibility: 1, sound: 'default', vibration: true, lights: true, lightColor: '#00f0ff' });
+        }
+      } catch (e) {}
+    } catch (e) {
+      this._pushRegistrationResolve = null;
+      this._pushRegistrationReject = null;
+      console.error('Push setup failed', e);
+      this._toast('Push не подключён · проверь разрешение уведомлений');
+    }
+  };
+`;
+  html = html.slice(0, start) + replacement + html.slice(end);
 }
 
 await writeFile(file, html);

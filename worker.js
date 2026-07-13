@@ -85,6 +85,9 @@ export default {
       if (!fcmResponse.ok) {
         const detail = (await fcmResponse.text()).slice(0, 500);
         console.warn('FCM rejected request', fcmResponse.status, detail);
+        if (/UNREGISTERED|registration-token-not-registered|INVALID_ARGUMENT/i.test(detail)) {
+          return json({ error: 'fcm_token_invalid' }, 410, cors);
+        }
         return json({ error: 'fcm_rejected' }, 502, cors);
       }
 

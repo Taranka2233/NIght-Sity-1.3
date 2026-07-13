@@ -29,7 +29,7 @@ function expect(condition, message) {
 }
 
 expect(htmlSize > 1_000_000, 'index.html is not the complete application');
-expect(html.includes('ВЕРСИЯ 2.077.204'), 'unexpected client version');
+expect(html.includes('ВЕРСИЯ 2.077.205'), 'unexpected client version');
 expect(!html.includes('night-city-net-demo'), 'demo client must never be packaged');
 expect(html.includes("import('./firebase-bundle.js')"), 'Firebase must load from the local bundle');
 expect(html.includes('<script src="./firebase-bundle.js"></script>'), 'Firebase bundle must preload for older Android WebView');
@@ -39,13 +39,15 @@ expect(html.includes('getIdToken'), 'authenticated push contract is missing');
 expect(html.includes('if (!user.emailVerified)'), 'unverified users must not race profile initialization');
 expect(html.includes('FIRESTORE: НЕТ ДОСТУПА ПО ПРАВИЛАМ'), 'Firebase errors must remain diagnosable');
 expect(/savePrivate\([^)]*['"]push['"]/.test(html), 'private push-token storage is missing');
+expect(html.includes('_pushErrorMessage') && html.includes('target_not_registered'), 'push delivery diagnostics are missing');
+expect(html.includes('PUSH_TOKEN_NOT_SAVED'), 'push-token persistence verification is missing');
 expect(!html.includes("saveProfile(this._myUid, { fcmToken"), 'FCM token is still stored in the public profile');
 expect(worker.includes('callId') && worker.includes('chatId'), 'Worker must validate call and chat context');
 expect(rules.includes('request.resource.data.from == request.auth.uid'), 'message sender anti-spoof rule is missing');
 expect(rules.includes('match /private/{document}'), 'private user documents are not protected');
 expect(rules.includes('inviteDecision()') && html.includes('acceptGroupInvite'), 'explicit group invitation flow is missing');
 expect(capacitor.appId === 'net.nightcity.chat', 'unexpected Capacitor appId');
-expect(androidGradle.includes('versionCode 2077204') && androidGradle.includes('versionName "2.077.204"'), 'unexpected Android version');
+expect(androidGradle.includes('versionCode 2077205') && androidGradle.includes('versionName "2.077.205"'), 'unexpected Android version');
 
 const androidClient = google.client?.find((entry) => entry.client_info?.android_client_info?.package_name === capacitor.appId);
 expect(androidClient, 'google-services.json does not contain the Capacitor appId');

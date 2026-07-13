@@ -274,8 +274,8 @@ manifest_path.write_text(manifest, encoding="utf-8")
 
 gradle_path = Path("android/app/build.gradle")
 gradle = gradle_path.read_text(encoding="utf-8")
-gradle = re.sub(r'versionCode\s+\d+', 'versionCode 2077204', gradle, count=1)
-gradle = re.sub(r'versionName\s+"[^"]+"', 'versionName "2.077.204"', gradle, count=1)
+gradle = re.sub(r'versionCode\s+\d+', 'versionCode 2077205', gradle, count=1)
+gradle = re.sub(r'versionName\s+"[^"]+"', 'versionName "2.077.205"', gradle, count=1)
 gradle = gradle.replace(
     'implementation "com.google.firebase:firebase-messaging:$firebaseMessagingVersion"',
     'implementation "com.google.firebase:firebase-messaging:25.0.1"',
