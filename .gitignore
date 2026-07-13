@@ -1,0 +1,23 @@
+# Secrets and local credentials
+night-sity-firebase-adminsdk-*.json
+*.pem
+*.p12
+
+# Build outputs and local archives
+*.zip
+android/app/build/
+android/.gradle/
+www/
+resources/
+
+# Local tooling
+node_modules/
+__pycache__/
+.venv/
+
+# IDE / OS files
+.idea/
+.gradle/
+*.iml
+Thumbs.db
+Desktop.ini

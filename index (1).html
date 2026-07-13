@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#071015">
+  <meta name="color-scheme" content="dark">
+  <title>Найт-Сити Нет</title>
+  <style>
+    :root {
+      --фон: #03080c;
+      --панель: rgba(8, 19, 26, .94);
+      --панель-2: rgba(13, 29, 38, .92);
+      --линия: rgba(62, 238, 255, .22);
+      --текст: #e7fbff;
+      --тусклый: #78939d;
+      --акцент: #3eeeff;
+      --акцент-rgb: 62, 238, 255;
+      --второй: #ff3cad;
+      --опасность: #ff4f63;
+      --успех: #65ff9a;
+      --предупреждение: #ffd84a;
+      --радиус: 8px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--фон); color: var(--текст); }
+    button, input, textarea, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--акцент); outline-offset: 2px; }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+      background: repeating-linear-gradient(to bottom, transparent 0, transparent 3px, rgba(0,0,0,.12) 4px);
+      mix-blend-mode: multiply;
+      opacity: .6;
+    }
+
+    #матрица {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: .22;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .приложение {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 560px);
+      height: 100%;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(3,8,12,.88), rgba(3,8,12,.97));
+      overflow: hidden;
+      border-inline: 1px solid rgba(var(--акцент-rgb), .08);
+    }
+
+    .иконка { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .скрыто { display: none !important; }
+    .только-скринридер { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+    .заставка {
+      position: absolute;
+      inset: 0;
+      z-index: 900;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background: radial-gradient(circle at 50% 42%, rgba(var(--акцент-rgb), .12), transparent 32%), #020609;
+      transition: opacity .45s ease, visibility .45s ease;
+    }
+    .заставка.готово { opacity: 0; visibility: hidden; }
+    .лого-блок { width: min(100%, 380px); text-align: center; }
+    .лого-знак {
+      position: relative;
+      width: 112px;
+      aspect-ratio: 1;
+      margin: 0 auto 22px;
+      display: grid;
+      place-items: center;
+      color: var(--акцент);
+      border: 2px solid var(--акцент);
+      clip-path: polygon(25% 0,75% 0,100% 25%,100% 75%,75% 100%,25% 100%,0 75%,0 25%);
+      filter: drop-shadow(0 0 14px rgba(var(--акцент-rgb), .55));
+      animation: пульс 1.8s infinite;
+    }
+    .лого-знак::before, .лого-знак::after { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(var(--акцент-rgb),.4); transform: rotate(45deg); }
+    .лого-знак::after { inset: 28px; background: var(--акцент); box-shadow: 0 0 22px var(--акцент); }
+    .лого { font-size: clamp(25px, 8vw, 38px); font-weight: 950; letter-spacing: .11em; margin: 0; text-shadow: 0 0 18px rgba(var(--акцент-rgb),.5); }
+    .лого span { color: var(--второй); }
+    .версия { margin-top: 8px; color: var(--тусклый); font: 11px/1.5 monospace; letter-spacing: .16em; }
+    .загрузка { height: 2px; margin-top: 28px; background: rgba(var(--акцент-rgb),.14); overflow: hidden; }
+    .загрузка > i { display: block; width: 42%; height: 100%; background: var(--акцент); box-shadow: 0 0 10px var(--акцент); animation: загрузка 1.1s infinite ease-in-out; }
+    .лог-загрузки { min-height: 32px; margin-top: 10px; text-align: left; color: var(--акцент); font: 10px/1.55 monospace; opacity: .75; }
+
+    @keyframes загрузка { from { transform: translateX(-110%); } to { transform: translateX(345%); } }
+    @keyframes пульс { 50% { filter: drop-shadow(0 0 25px rgba(var(--акцент-rgb), .8)); transform: scale(1.025); } }
+    @keyframes появление { from { opacity: 0; transform: translateY(8px); } }
+    @keyframes мигание { 50% { opacity: .25; } }
+    @keyframes вращение { to { transform: rotate(360deg); } }
+    @keyframes ядро { 50% { transform: scale(1.045); box-shadow: 0 0 36px rgba(var(--акцент-rgb), .5), inset 0 0 30px rgba(var(--акцент-rgb), .22); } }
+
+    .верхняя-панель {
+      height: calc(66px + var(--safe-top));
+      padding: calc(12px + var(--safe-top)) 14px 10px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      border-bottom: 1px solid var(--линия);
+      background: linear-gradient(180deg, rgba(5,14,20,.99), rgba(6,16,22,.94));
+      position: relative;
+      z-index: 50;
+    }
+    .верхняя-панель::after { content: ""; position: absolute; bottom: -1px; left: 0; width: 35%; height: 1px; background: var(--акцент); box-shadow: 0 0 10px var(--акцент); }
+    .мини-лого { font-weight: 950; letter-spacing: .08em; color: var(--акцент); line-height: 1; font-size: 15px; white-space: nowrap; }
+    .мини-лого b { color: var(--второй); }
+    .заголовок-экрана { flex: 1; min-width: 0; }
+    .заголовок-экрана h1 { margin: 0; font-size: 16px; letter-spacing: .05em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .заголовок-экрана p { margin: 4px 0 0; color: var(--тусклый); font-size: 10px; letter-spacing: .06em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .кнопка-иконка {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(var(--акцент-rgb), .2);
+      border-radius: var(--радиус);
+      background: rgba(var(--акцент-rgb), .045);
+      cursor: pointer;
+    }
+    .кнопка-иконка:active { transform: scale(.94); color: var(--акцент); }
+    .аватар {
+      width: 45px;
+      aspect-ratio: 1;
+      flex: 0 0 45px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(var(--цвет-аватара, 62,238,255), .7);
+      border-radius: 7px;
+      color: rgb(var(--цвет-аватара, 62,238,255));
+      background: linear-gradient(135deg, rgba(var(--цвет-аватара, 62,238,255), .19), rgba(0,0,0,.36));
+      font-weight: 900;
+      font-size: 15px;
+      text-shadow: 0 0 9px currentColor;
+      position: relative;
+      overflow: hidden;
+    }
+    .аватар::after { content: ""; position: absolute; left: -35%; top: 35%; width: 170%; height: 1px; transform: rotate(-35deg); background: rgba(255,255,255,.25); }
+    .аватар.мой { --цвет-аватара: 255,60,173; }
+    .онлайн-точка { position: absolute; right: -3px; bottom: -3px; width: 11px; height: 11px; border: 2px solid #071015; border-radius: 50%; background: var(--успех); box-shadow: 0 0 7px var(--успех); }
+
+    .содержимое { height: calc(100% - 66px - var(--safe-top) - 68px - var(--safe-bottom)); position: relative; overflow: hidden; }
+    .содержимое.без-навигации { height: calc(100% - 66px - var(--safe-top)); }
+    .экран { display: none; height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 24px; scrollbar-width: thin; scrollbar-color: var(--линия) transparent; }
+    .экран.активен { display: block; animation: появление .24s ease both; }
+    #экран-диалог { padding: 0; overflow: hidden; }
+
+    .нижняя-навигация {
+      height: calc(68px + var(--safe-bottom));
+      padding: 7px 8px var(--safe-bottom);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      border-top: 1px solid var(--линия);
+      background: rgba(5,14,20,.98);
+      position: relative;
+      z-index: 50;
+    }
+    .нави-кнопка { border: 0; background: transparent; color: #69858e; display: grid; justify-items: center; align-content: center; gap: 4px; cursor: pointer; font-size: 9px; letter-spacing: .04em; text-transform: uppercase; position: relative; }
+    .нави-кнопка .иконка { width: 23px; height: 23px; }
+    .нави-кнопка.активна { color: var(--акцент); text-shadow: 0 0 9px rgba(var(--акцент-rgb), .55); }
+    .нави-кнопка.активна::before { content: ""; position: absolute; top: -8px; width: 38px; height: 2px; background: var(--акцент); box-shadow: 0 0 9px var(--акцент); }
+    .счётчик-нави { position: absolute; top: 2px; left: calc(50% + 7px); min-width: 15px; height: 15px; padding: 0 4px; display: grid; place-items: center; border-radius: 9px; background: var(--второй); color: #fff; font-size: 9px; font-weight: 900; box-shadow: 0 0 9px var(--второй); }
+
+    .офлайн { position: absolute; left: 14px; right: 14px; top: calc(72px + var(--safe-top)); z-index: 80; padding: 8px 12px; border: 1px solid var(--предупреждение); background: rgba(42,33,4,.96); color: var(--предупреждение); font-size: 11px; text-align: center; border-radius: 5px; }
+
+    .карточка-профиля {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 13px;
+      margin-bottom: 13px;
+      background: linear-gradient(120deg, rgba(var(--акцент-rgb),.1), rgba(255,60,173,.05));
+      border: 1px solid var(--линия);
+      border-radius: var(--радиус);
+      clip-path: polygon(0 0, calc(100% - 13px) 0, 100% 13px, 100% 100%, 13px 100%, 0 calc(100% - 13px));
+    }
+    .карточка-профиля h2 { margin: 0; font-size: 14px; }
+    .карточка-профиля p { margin: 5px 0 0; color: var(--тусклый); font: 10px monospace; }
+    .уровень { text-align: right; color: var(--акцент); font: 10px monospace; }
+    .уровень b { display: block; font-size: 17px; }
+
+    .статистика { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin: 0 0 13px; }
+    .стат { padding: 9px 7px; border: 1px solid rgba(var(--акцент-rgb),.11); background: rgba(var(--акцент-rgb),.035); text-align: center; border-radius: 5px; }
+    .стат b { display: block; color: var(--акцент); font-size: 15px; }
+    .стат span { color: var(--тусклый); font-size: 9px; letter-spacing: .06em; }
+
+    .поиск { position: relative; margin-bottom: 10px; }
+    .поиск .иконка { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; color: var(--тусклый); }
+    .поле { width: 100%; border: 1px solid rgba(var(--акцент-rgb),.18); border-radius: 6px; background: rgba(8,20,27,.9); color: var(--текст); padding: 12px 12px 12px 39px; outline: none; }
+    .поле::placeholder { color: #59717a; }
+    .поле:focus { border-color: var(--акцент); box-shadow: 0 0 0 2px rgba(var(--акцент-rgb),.08); }
+
+    .фильтры { display: flex; gap: 7px; overflow-x: auto; padding: 1px 0 10px; scrollbar-width: none; }
+    .фильтр { border: 1px solid rgba(var(--акцент-rgb),.15); border-radius: 4px; background: transparent; color: var(--тусклый); padding: 7px 10px; font-size: 10px; white-space: nowrap; cursor: pointer; }
+    .фильтр.активен { color: #001012; background: var(--акцент); border-color: var(--акцент); font-weight: 800; box-shadow: 0 0 10px rgba(var(--акцент-rgb), .25); }
+
+    .заголовок-секции { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 8px; }
+    .заголовок-секции h2 { margin: 0; font-size: 11px; color: var(--тусклый); letter-spacing: .13em; text-transform: uppercase; }
+    .заголовок-секции span { color: var(--акцент); font-size: 10px; }
+
+    .список { display: grid; gap: 7px; }
+    .чат {
+      width: 100%;
+      min-height: 69px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 11px;
+      padding: 10px;
+      text-align: left;
+      border: 1px solid rgba(var(--акцент-rgb),.1);
+      border-left: 2px solid rgba(var(--акцент-rgb),.24);
+      border-radius: 5px;
+      background: linear-gradient(90deg, rgba(var(--акцент-rgb),.055), rgba(10,22,29,.72));
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .чат:active { background: rgba(var(--акцент-rgb),.09); transform: scale(.992); }
+    .чат::after { content: ""; position: absolute; right: -11px; bottom: -11px; width: 22px; height: 22px; border: 1px solid rgba(var(--акцент-rgb),.16); transform: rotate(45deg); }
+    .чат-текст { min-width: 0; }
+    .чат-имя { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: 13px; }
+    .метка { display: inline-flex; padding: 2px 4px; border: 1px solid currentColor; border-radius: 3px; color: var(--второй); font: 7px monospace; letter-spacing: .06em; }
+    .чат-сообщение { margin: 0; color: var(--тусклый); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .чат-мета { align-self: stretch; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; padding: 2px 0; color: var(--тусклый); font-size: 9px; }
+    .непрочитано { min-width: 19px; height: 19px; padding: 0 5px; display: grid; place-items: center; border-radius: 10px; color: #001014; background: var(--акцент); font-weight: 900; box-shadow: 0 0 8px rgba(var(--акцент-rgb),.5); }
+    .пусто { text-align: center; padding: 40px 16px; color: var(--тусклый); }
+    .пусто .иконка { width: 40px; height: 40px; margin-bottom: 8px; opacity: .45; }
+
+    .плавающая {
+      position: absolute;
+      right: 18px;
+      bottom: calc(82px + var(--safe-bottom));
+      z-index: 55;
+      width: 52px;
+      height: 52px;
+      border: 1px solid var(--акцент);
+      border-radius: 7px 7px 7px 20px;
+      display: grid;
+      place-items: center;
+      background: #08232a;
+      color: var(--акцент);
+      box-shadow: 0 0 22px rgba(var(--акцент-rgb),.25);
+      cursor: pointer;
+    }
+
+    .контакт { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 11px; padding: 10px 7px; border-bottom: 1px solid rgba(var(--акцент-rgb),.09); }
+    .контакт h3 { margin: 0 0 4px; font-size: 13px; }
+    .контакт p { margin: 0; color: var(--тусклый); font-size: 10px; }
+    .контакт-действия { display: flex; gap: 5px; }
+    .контакт-действия .кнопка-иконка { width: 35px; height: 35px; flex-basis: 35px; }
+    .контакт-действия .иконка { width: 18px; }
+
+    .эфир-герой { position: relative; min-height: 185px; padding: 20px; margin-bottom: 14px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; border: 1px solid rgba(255,60,173,.35); border-radius: var(--радиус); background: radial-gradient(circle at 80% 20%, rgba(255,60,173,.29), transparent 28%), linear-gradient(145deg,#071925,#1a0820); }
+    .эфир-герой::before { content: "NC\A NEWS"; white-space: pre; position: absolute; right: 18px; top: 19px; color: rgba(255,255,255,.08); font-size: 45px; line-height: .8; font-weight: 950; text-align: right; }
+    .эфир-герой::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 55%, rgba(var(--акцент-rgb),.08) 55%, rgba(var(--акцент-rgb),.08) 57%, transparent 57%); }
+    .прямой { align-self: flex-start; padding: 4px 7px; color: white; background: var(--опасность); font: 9px monospace; animation: мигание 1.5s infinite; }
+    .эфир-герой h2 { position: relative; z-index: 1; max-width: 82%; margin: 11px 0 6px; font-size: 21px; line-height: 1.05; }
+    .эфир-герой p { position: relative; z-index: 1; margin: 0; color: #a8c2ca; font-size: 11px; }
+    .новость { padding: 14px; border: 1px solid rgba(var(--акцент-rgb),.12); border-radius: 6px; background: rgba(8,20,27,.75); }
+    .новость + .новость { margin-top: 8px; }
+    .новость-мета { display: flex; justify-content: space-between; color: var(--тусклый); font: 9px monospace; }
+    .новость h3 { margin: 10px 0 6px; font-size: 14px; line-height: 1.25; }
+    .новость p { margin: 0; color: #92aab2; font-size: 11px; line-height: 1.45; }
+    .новость-действия { display: flex; gap: 14px; margin-top: 12px; color: var(--тусклый); }
+    .тихая-кнопка { border: 0; padding: 0; background: transparent; color: inherit; display: flex; align-items: center; gap: 5px; font-size: 10px; cursor: pointer; }
+    .тихая-кнопка .иконка { width: 16px; height: 16px; }
+    .тихая-кнопка.активна { color: var(--второй); }
+
+    .настройка-секция { margin-bottom: 14px; border: 1px solid rgba(var(--акцент-rgb),.11); border-radius: 6px; overflow: hidden; background: rgba(8,19,25,.62); }
+    .настройка-заголовок { padding: 8px 11px; border-bottom: 1px solid rgba(var(--акцент-rgb),.1); color: var(--акцент); font: 9px monospace; letter-spacing: .12em; text-transform: uppercase; }
+    .настройка { min-height: 54px; padding: 10px 11px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; border-bottom: 1px solid rgba(var(--акцент-rgb),.07); }
+    .настройка:last-child { border-bottom: 0; }
+    .настройка > .иконка { color: var(--тусклый); width: 20px; }
+    .настройка h3 { margin: 0; font-size: 12px; }
+    .настройка p { margin: 4px 0 0; color: var(--тусклый); font-size: 9px; }
+    .переключатель { width: 42px; height: 23px; padding: 2px; border: 1px solid #36505a; border-radius: 13px; background: #13232a; cursor: pointer; transition: .2s; }
+    .переключатель i { display: block; width: 17px; height: 17px; border-radius: 50%; background: #67808a; transition: .2s; }
+    .переключатель.вкл { border-color: var(--акцент); background: rgba(var(--акцент-rgb),.15); }
+    .переключатель.вкл i { transform: translateX(17px); background: var(--акцент); box-shadow: 0 0 8px var(--акцент); }
+    .палитра { display: flex; gap: 8px; }
+    .цвет { width: 24px; height: 24px; border: 2px solid transparent; border-radius: 50%; background: var(--цвет); cursor: pointer; box-shadow: 0 0 8px var(--цвет); }
+    .цвет.активен { border-color: #fff; transform: scale(1.12); }
+    .кнопка-строка { width: 100%; border: 0; color: inherit; background: transparent; text-align: left; cursor: pointer; }
+    .версия-карточка { text-align: center; color: var(--тусклый); font: 9px/1.6 monospace; padding: 8px 0 12px; }
+
+    .диалог-область { height: 100%; display: flex; flex-direction: column; background: radial-gradient(circle at 0 100%, rgba(var(--акцент-rgb),.06), transparent 35%); }
+    .шифрование { margin: 9px auto 2px; padding: 5px 9px; border: 1px solid rgba(101,255,154,.25); border-radius: 10px; color: var(--успех); background: rgba(101,255,154,.05); font: 8px monospace; }
+    .сообщения { flex: 1; overflow-y: auto; padding: 10px 12px 16px; overscroll-behavior: contain; }
+    .разделитель-даты { display: flex; align-items: center; gap: 8px; margin: 9px 0 13px; color: var(--тусклый); font: 8px monospace; }
+    .разделитель-даты::before, .разделитель-даты::after { content: ""; height: 1px; flex: 1; background: rgba(var(--акцент-rgb),.11); }
+    .сообщение { max-width: 83%; width: fit-content; margin: 5px 0; padding: 9px 11px 6px; border: 1px solid rgba(var(--акцент-rgb),.12); border-radius: 5px 12px 12px 12px; background: #0d2029; animation: появление .18s ease; }
+    .сообщение.моё { margin-left: auto; border-color: rgba(var(--акцент-rgb),.28); border-radius: 12px 5px 12px 12px; background: linear-gradient(135deg, rgba(var(--акцент-rgb),.18), #0c2730); }
+    .сообщение p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.4; }
+    .сообщение-мета { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 4px; color: #69858e; font-size: 8px; }
+    .галочки { color: var(--акцент); letter-spacing: -2px; }
+    .ответ-на { margin-bottom: 6px; padding-left: 7px; border-left: 2px solid var(--второй); color: #8ca5ad; font-size: 9px; }
+    .аудио { display: flex; align-items: center; gap: 8px; min-width: 190px; }
+    .аудио-play { width: 29px; height: 29px; border: 1px solid var(--акцент); border-radius: 50%; display: grid; place-items: center; color: var(--акцент); background: transparent; }
+    .волна { flex: 1; height: 24px; display: flex; align-items: center; gap: 2px; }
+    .волна i { width: 2px; height: calc(4px + var(--h) * 1px); max-height: 22px; background: var(--акцент); opacity: .6; }
+    .фото-вложение { width: min(220px, 65vw); aspect-ratio: 1.45; margin-bottom: 6px; border-radius: 4px; background: radial-gradient(circle at 50% 40%, rgba(var(--акцент-rgb),.85) 0 3%, rgba(var(--акцент-rgb),.18) 4% 15%, transparent 16%), linear-gradient(145deg,#111a2a,#30122a 55%,#072c38); position: relative; overflow: hidden; }
+    .фото-вложение::before { content: "NIGHT CITY // 23:47"; position: absolute; left: 9px; bottom: 8px; color: white; font: 8px monospace; }
+    .ввод-панель { padding: 8px 8px calc(8px + var(--safe-bottom)); display: flex; align-items: flex-end; gap: 6px; border-top: 1px solid var(--линия); background: rgba(5,14,20,.98); }
+    .ввод-панель textarea { flex: 1; max-height: 100px; min-height: 41px; resize: none; border: 1px solid rgba(var(--акцент-rgb),.17); border-radius: 7px; background: #0a1b22; color: var(--текст); padding: 11px; outline: none; }
+    .ввод-панель textarea:focus { border-color: var(--акцент); }
+    .ввод-панель .кнопка-иконка { width: 41px; height: 41px; flex-basis: 41px; }
+    .запись { flex: 1; min-height: 41px; align-items: center; gap: 9px; color: var(--опасность); font: 11px monospace; }
+    .запись .точка { width: 9px; height: 9px; border-radius: 50%; background: var(--опасность); box-shadow: 0 0 8px var(--опасность); animation: мигание 1s infinite; }
+
+    dialog { width: min(calc(100% - 28px), 500px); max-height: 82vh; padding: 0; color: var(--текст); border: 1px solid var(--акцент); border-radius: 8px; background: #07141a; box-shadow: 0 0 35px rgba(var(--акцент-rgb),.25); }
+    dialog::backdrop { background: rgba(0,3,5,.78); backdrop-filter: blur(3px); }
+    .модал-шапка { padding: 13px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--линия); }
+    .модал-шапка h2 { margin: 0; color: var(--акцент); font-size: 13px; letter-spacing: .08em; }
+    .модал-тело { max-height: calc(82vh - 58px); padding: 14px; overflow-y: auto; }
+    .большая-кнопка { width: 100%; min-height: 43px; border: 1px solid var(--акцент); border-radius: 5px; background: rgba(var(--акцент-rgb),.12); color: var(--акцент); font-weight: 800; font-size: 11px; letter-spacing: .06em; cursor: pointer; }
+    .большая-кнопка.опасная { border-color: var(--опасность); color: var(--опасность); background: rgba(255,79,99,.08); }
+    .вариант-вложения { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .вариант-вложения button { min-height: 88px; border: 1px solid rgba(var(--акцент-rgb),.15); border-radius: 6px; background: rgba(var(--акцент-rgb),.04); color: var(--тусклый); display: grid; place-items: center; align-content: center; gap: 7px; font-size: 10px; }
+    .вариант-вложения .иконка { color: var(--акцент); }
+
+    .экран-звонка { position: absolute; inset: 0; z-index: 600; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: calc(50px + var(--safe-top)) 20px calc(34px + var(--safe-bottom)); background: radial-gradient(circle at 50% 33%, rgba(var(--акцент-rgb),.17), transparent 28%), linear-gradient(160deg,#041016,#120718); }
+    .экран-звонка.активен { display: flex; animation: появление .25s ease; }
+    .экран-звонка::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(120deg,transparent 0 16px,rgba(var(--акцент-rgb),.025) 17px 18px); }
+    .звонок-верх, .звонок-низ { position: relative; z-index: 1; text-align: center; }
+    .звонок-аватар { width: 120px; margin: 24px auto; font-size: 33px; border-radius: 18px; box-shadow: 0 0 35px rgba(var(--акцент-rgb),.22); }
+    .звонок-верх h2 { margin: 0; font-size: 24px; }
+    .звонок-статус { margin-top: 8px; color: var(--акцент); font: 11px monospace; letter-spacing: .08em; }
+    .звонок-сетка { display: grid; grid-template-columns: repeat(3,76px); gap: 17px; }
+    .звонок-кнопка { border: 1px solid rgba(var(--акцент-rgb),.22); border-radius: 50%; width: 58px; height: 58px; margin: auto; display: grid; place-items: center; background: rgba(var(--акцент-rgb),.08); }
+    .звонок-кнопка.активна { background: var(--акцент); color: #001015; }
+    .звонок-кнопка.сброс { background: var(--опасность); border-color: var(--опасность); color: white; transform: rotate(135deg); }
+    .звонок-подпись { margin-top: 7px; color: var(--тусклый); font-size: 9px; }
+
+    .игра { position: absolute; inset: 0; z-index: 550; display: none; flex-direction: column; background: radial-gradient(circle at 50% 34%, rgba(var(--акцент-rgb),.08), transparent 35%), #03090d; }
+    .игра.активна { display: flex; }
+    .игра-шапка { height: calc(62px + var(--safe-top)); padding: calc(10px + var(--safe-top)) 12px 9px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--линия); }
+    .игра-шапка h2 { flex: 1; margin: 0; color: var(--акцент); font-size: 14px; letter-spacing: .09em; }
+    .игра-тело { flex: 1; overflow-y: auto; padding: 16px; }
+    .счёт-игры { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 15px; }
+    .счёт-игры > div { flex: 1; padding: 9px; border: 1px solid var(--линия); text-align: center; color: var(--тусклый); font-size: 9px; }
+    .счёт-игры b { display: block; margin-top: 3px; color: var(--акцент); font-size: 18px; }
+
+    .поле-2048 { width: min(100%, 430px); aspect-ratio: 1; margin: 0 auto; padding: 7px; display: grid; grid-template-columns: repeat(4,1fr); grid-template-rows: repeat(4,1fr); gap: 7px; border: 1px solid rgba(var(--акцент-rgb),.3); background: rgba(var(--акцент-rgb),.04); touch-action: none; }
+    .ячейка-2048 { display: grid; place-items: center; border: 1px solid rgba(var(--акцент-rgb),.08); background: rgba(10,26,34,.75); color: var(--тусклый); font-weight: 950; font-size: clamp(15px,6vw,28px); }
+    .ячейка-2048[data-n="2"], .ячейка-2048[data-n="4"] { color: #b4f8ff; background: rgba(var(--акцент-rgb),.12); }
+    .ячейка-2048[data-n="8"], .ячейка-2048[data-n="16"] { color: #ffb1dc; background: rgba(255,60,173,.15); }
+    .ячейка-2048[data-n="32"], .ячейка-2048[data-n="64"] { color: var(--предупреждение); background: rgba(255,216,74,.15); }
+    .ячейка-2048[data-n="128"], .ячейка-2048[data-n="256"], .ячейка-2048[data-n="512"], .ячейка-2048[data-n="1024"], .ячейка-2048[data-n="2048"] { color: #001012; background: var(--акцент); box-shadow: 0 0 14px rgba(var(--акцент-rgb),.35); }
+    .управление-2048 { width: 186px; margin: 18px auto 0; display: grid; grid-template-columns: repeat(3,58px); gap: 6px; }
+    .управление-2048 button { height: 48px; border: 1px solid var(--линия); background: rgba(var(--акцент-rgb),.06); color: var(--акцент); }
+    .управление-2048 .вверх { grid-column: 2; }
+    .подсказка { text-align: center; color: var(--тусклый); font-size: 10px; line-height: 1.5; margin-top: 14px; }
+
+    .нетраннер-статы { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+    .нетраннер-статы div { padding: 8px 4px; text-align: center; border: 1px solid rgba(var(--акцент-rgb),.13); color: var(--тусклый); font-size: 8px; }
+    .нетраннер-статы b { display: block; color: var(--акцент); font-size: 15px; margin-top: 3px; }
+    .ядро-обёртка { position: relative; width: 230px; height: 230px; margin: 18px auto 10px; display: grid; place-items: center; }
+    .орбита { position: absolute; inset: 8px; border: 1px dashed rgba(var(--акцент-rgb),.28); border-radius: 50%; animation: вращение 18s linear infinite; }
+    .орбита::before, .орбита::after { content: ""; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--второй); box-shadow: 0 0 10px var(--второй); }
+    .орбита::before { left: 26px; top: 22px; }
+    .орбита::after { right: 12px; bottom: 54px; }
+    .ядро { width: 154px; height: 154px; border: 2px solid var(--акцент); border-radius: 50%; background: radial-gradient(circle at 38% 32%, #c8fbff 0 2%, var(--акцент) 3% 6%, rgba(var(--акцент-rgb),.27) 7% 17%, #071622 38%, #02070c 67%); box-shadow: 0 0 25px rgba(var(--акцент-rgb),.38), inset 0 0 28px rgba(var(--акцент-rgb),.16); display: grid; place-items: center; color: var(--акцент); cursor: pointer; animation: ядро 2.3s ease-in-out infinite; position: relative; }
+    .ядро::before, .ядро::after { content: ""; position: absolute; border: 1px solid rgba(255,60,173,.6); border-radius: 50%; }
+    .ядро::before { inset: 19px; border-style: dashed; }
+    .ядро::after { inset: 38px; box-shadow: 0 0 18px rgba(255,60,173,.34); }
+    .ядро span { position: relative; z-index: 1; font-size: 32px; filter: drop-shadow(0 0 8px var(--акцент)); }
+    .ядро:active { transform: scale(.94); animation: none; }
+    .энергия { height: 7px; margin: 10px 0 15px; border: 1px solid rgba(var(--акцент-rgb),.22); background: #061218; overflow: hidden; }
+    .энергия i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg,var(--второй),var(--акцент)); box-shadow: 0 0 8px var(--акцент); transition: width .18s; }
+    .программы { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+    .программа { min-height: 92px; padding: 8px 5px; border: 1px solid rgba(var(--акцент-rgb),.14); border-radius: 5px; background: rgba(var(--акцент-rgb),.04); text-align: center; cursor: pointer; }
+    .программа:disabled { opacity: .4; }
+    .программа .знак { font-size: 25px; color: var(--акцент); text-shadow: 0 0 9px currentColor; }
+    .программа h4 { margin: 5px 0 3px; font-size: 9px; }
+    .программа p { margin: 0; color: var(--тусклый); font-size: 8px; }
+    .программа b { display: block; color: var(--предупреждение); margin-top: 5px; font-size: 9px; }
+
+    .тост { position: absolute; z-index: 1200; left: 50%; bottom: calc(86px + var(--safe-bottom)); width: max-content; max-width: calc(100% - 28px); transform: translate(-50%, 20px); padding: 10px 13px; border: 1px solid var(--акцент); border-radius: 5px; background: rgba(5,18,24,.97); color: var(--текст); box-shadow: 0 0 18px rgba(var(--акцент-rgb),.18); opacity: 0; visibility: hidden; transition: .22s; font-size: 11px; text-align: center; }
+    .тост.виден { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    .частица { position: fixed; z-index: 700; pointer-events: none; color: var(--акцент); font: 900 12px monospace; text-shadow: 0 0 7px var(--акцент); animation: частица .7s ease-out forwards; }
+    @keyframes частица { to { transform: translate(var(--x), -72px) scale(.6); opacity: 0; } }
+
+    @media (min-width: 700px) {
+      body { background: radial-gradient(circle at 50% 30%,#0b2530,#020608 60%); }
+      .приложение { height: min(94vh, 880px); margin-top: 3vh; border: 1px solid rgba(var(--акцент-rgb),.23); box-shadow: 0 0 45px #000; border-radius: 12px; }
+      .экран-звонка, .игра { border-radius: 12px; }
+    }
+
+    @media (max-width: 355px) {
+      .статистика { display: none; }
+      .звонок-сетка { grid-template-columns: repeat(3,68px); gap: 8px; }
+      .программы { grid-template-columns: repeat(2,1fr); }
+      .мини-лого { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="только-скринридер" aria-hidden="true">
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M7 8h10M7 12h7"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-radio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.48M7.76 16.24a6 6 0 0 1 0-8.48M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 0-14.14"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.16.4.39.75.69 1 .3.27.7.4 1.1.4H21v4h-.09A1.7 1.7 0 0 0 19.4 15z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.34 1.78.65 2.62a2 2 0 0 1-.45 2.11L8.04 9.72a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.84.31 1.72.53 2.62.65A2 2 0 0 1 22 16.92z"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><path d="M23 7 16 12l7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="m21.4 11.6-8.9 8.9a6 6 0 0 1-8.5-8.5l9.6-9.6a4 4 0 0 1 5.7 5.7l-9.6 9.6a2 2 0 0 1-2.8-2.8L15.8 6"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4zM22 2 11 13"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-game" viewBox="0 0 24 24"><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/><path d="M17 6H7a5 5 0 0 0-4.7 3.3L1 17a2 2 0 0 0 3.4 1.8L7 16h10l2.6 2.8A2 2 0 0 0 23 17l-1.3-7.7A5 5 0 0 0 17 6z"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21h-3.4"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v7c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12v7c0 1.7 4 3 9 3s9-1.3 9-3v-7"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0 0 20h1.7a1.7 1.7 0 0 0 1.2-2.9 1.7 1.7 0 0 1 1.2-2.9H18A4 4 0 0 0 22 12 10 10 0 0 0 12 2z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="10" cy="6.5" r="1"/><circle cx="15" cy="6.5" r="1"/><circle cx="17" cy="10.5" r="1"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></symbol>
+  </svg>
+
+  <canvas id="матрица"></canvas>
+  <main class="приложение" id="приложение">
+    <section class="заставка" id="заставка" aria-label="Запуск приложения">
+      <div class="лого-блок">
+        <div class="лого-знак" aria-hidden="true"></div>
+        <h1 class="лого">НАЙТ-СИТИ <span>НЕТ</span></h1>
+        <div class="версия">ВЕРСИЯ 2.077.202 // LOCAL BUILD</div>
+        <div class="загрузка"><i></i></div>
+        <div class="лог-загрузки" id="лог-загрузки">&gt; ИНИЦИАЛИЗАЦИЯ КИБЕРДЕКИ...</div>
+      </div>
+    </section>
+
+    <div class="офлайн скрыто" id="офлайн">СЕТЬ НЕДОСТУПНА — ЛОКАЛЬНЫЙ РЕЖИМ</div>
+
+    <header class="верхняя-панель" id="главная-шапка">
+      <div class="мини-лого">NC_<b>NET</b></div>
+      <div class="заголовок-экрана">
+        <h1 id="заголовок">ЧАТЫ</h1>
+        <p id="подзаголовок">ЗАЩИЩЁННЫЙ ЛОКАЛЬНЫЙ КАНАЛ</p>
+      </div>
+      <button type="button" class="кнопка-иконка" id="кнопка-поиск" aria-label="Поиск"><svg class="иконка"><use href="#i-search"/></svg></button>
+      <div class="аватар мой" role="img" aria-label="Профиль">T<span class="онлайн-точка"></span></div>
+    </header>
+
+    <header class="верхняя-панель скрыто" id="шапка-диалога">
+      <button type="button" class="кнопка-иконка" id="назад-из-диалога" aria-label="Назад"><svg class="иконка"><use href="#i-arrow"/></svg></button>
+      <div class="аватар" id="диалог-аватар">V<span class="онлайн-точка"></span></div>
+      <div class="заголовок-экрана" id="профиль-диалога" role="button" tabindex="0">
+        <h1 id="диалог-имя">Виктор</h1>
+        <p id="диалог-статус">В СЕТИ</p>
+      </div>
+      <button type="button" class="кнопка-иконка" id="аудиозвонок" aria-label="Аудиозвонок"><svg class="иконка"><use href="#i-phone"/></svg></button>
+      <button type="button" class="кнопка-иконка" id="видеозвонок" aria-label="Видеозвонок"><svg class="иконка"><use href="#i-video"/></svg></button>
+    </header>
+
+    <div class="содержимое" id="содержимое">
+      <section class="экран активен" id="экран-чаты" data-экран="чаты">
+        <article class="карточка-профиля">
+          <div class="аватар мой">T<span class="онлайн-точка"></span></div>
+          <div><h2>Taranka2233</h2><p>СТАТУС: НЕЙТРАЛЕН // ID 2077-2233</p></div>
+          <div class="уровень">РЕПУТАЦИЯ<b>77</b></div>
+        </article>
+        <div class="статистика">
+          <div class="стат"><b id="стат-чаты">5</b><span>КАНАЛОВ</span></div>
+          <div class="стат"><b id="стат-онлайн">4</b><span>В СЕТИ</span></div>
+          <div class="стат"><b id="стат-сообщения">0</b><span>НЕПРОЧИТАНО</span></div>
+        </div>
+        <label class="поиск"><svg class="иконка"><use href="#i-search"/></svg><span class="только-скринридер">Поиск по чатам</span><input type="text" class="поле" id="поиск-чатов" placeholder="ПОИСК ПО СЕТИ..." autocomplete="off"></label>
+        <div class="фильтры" id="фильтры">
+          <button type="button" class="фильтр активен" data-фильтр="все">ВСЕ</button>
+          <button type="button" class="фильтр" data-фильтр="непрочитанные">НЕПРОЧИТАННЫЕ</button>
+          <button type="button" class="фильтр" data-фильтр="личные">ЛИЧНЫЕ</button>
+          <button type="button" class="фильтр" data-фильтр="банды">БАНДЫ</button>
+        </div>
+        <div class="заголовок-секции"><h2>Активные соединения</h2><span id="количество-чатов">5 УЗЛОВ</span></div>
+        <div class="список" id="список-чатов"></div>
+      </section>
+
+      <section class="экран" id="экран-контакты" data-экран="контакты">
+        <label class="поиск"><svg class="иконка"><use href="#i-search"/></svg><span class="только-скринридер">Поиск контактов</span><input type="text" class="поле" id="поиск-контактов" placeholder="ПОИСК НЕТРАННЕРА..." autocomplete="off"></label>
+        <div class="заголовок-секции"><h2>В сети</h2><span>4 ДОСТУПНО</span></div>
+        <div id="список-контактов"></div>
+        <div class="заголовок-секции" style="margin-top:18px"><h2>Запросы</h2><span>1 НОВЫЙ</span></div>
+        <div class="контакт" id="запрос-контакта">
+          <div class="аватар" style="--цвет-аватара:255,216,74">NX</div>
+          <div><h3>Nyx_404</h3><p>Хочет установить защищённый канал</p></div>
+          <div class="контакт-действия"><button type="button" class="кнопка-иконка" id="принять-контакт" aria-label="Принять">+</button><button type="button" class="кнопка-иконка" id="отклонить-контакт" aria-label="Отклонить">×</button></div>
+        </div>
+      </section>
+
+      <section class="экран" id="экран-эфир" data-экран="эфир">
+        <article class="эфир-герой">
+          <span class="прямой">● ПРЯМОЙ ЭФИР</span>
+          <h2>Шторм над Уотсоном</h2>
+          <p>Корпоративные дроны перекрыли северный сектор. Репортаж с места событий.</p>
+        </article>
+        <div class="заголовок-секции"><h2>Лента Найт-Сити</h2><span>ОБНОВЛЕНО</span></div>
+        <div id="лента-новостей"></div>
+      </section>
+
+      <section class="экран" id="экран-настройки" data-экран="настройки">
+        <div class="настройка-секция">
+          <div class="настройка-заголовок">Внешний вид</div>
+          <div class="настройка"><svg class="иконка"><use href="#i-palette"/></svg><div><h3>Цвет интерфейса</h3><p>Выбери оттенок кибердеки</p></div><div class="палитра"><button type="button" class="цвет активен" data-цвет="cyan" style="--цвет:#3eeeff" aria-label="Голубой"></button><button type="button" class="цвет" data-цвет="pink" style="--цвет:#ff3cad" aria-label="Розовый"></button><button type="button" class="цвет" data-цвет="green" style="--цвет:#65ff9a" aria-label="Зелёный"></button><button type="button" class="цвет" data-цвет="amber" style="--цвет:#ffd84a" aria-label="Жёлтый"></button></div></div>
+          <div class="настройка"><svg class="иконка"><use href="#i-database"/></svg><div><h3>Матричный фон</h3><p>Анимированный поток кода</p></div><button type="button" class="переключатель вкл" data-настройка="матрица" aria-label="Матричный фон"><i></i></button></div>
+          <div class="настройка"><svg class="иконка"><use href="#i-volume"/></svg><div><h3>Звуки интерфейса</h3><p>Синтетические сигналы действий</p></div><button type="button" class="переключатель вкл" data-настройка="звук" aria-label="Звуки"><i></i></button></div>
+        </div>
+
+        <div class="настройка-секция">
+          <div class="настройка-заголовок">Безопасность</div>
+          <div class="настройка"><svg class="иконка"><use href="#i-lock"/></svg><div><h3>Защита локальных данных</h3><p>Демо-данные хранятся только на устройстве</p></div><span style="color:var(--успех);font-size:10px">АКТИВНА</span></div>
+          <button type="button" class="настройка кнопка-строка" id="экспорт"><svg class="иконка"><use href="#i-database"/></svg><div><h3>Экспорт резервной копии</h3><p>Скачать настройки и переписку в JSON</p></div><span>›</span></button>
+          <button type="button" class="настройка кнопка-строка" id="импорт-кнопка"><svg class="иконка"><use href="#i-file"/></svg><div><h3>Импорт резервной копии</h3><p>Восстановить локальный файл</p></div><span>›</span></button>
+          <input id="импорт-файл" type="file" accept="application/json" class="скрыто">
+        </div>
+
+        <div class="настройка-секция">
+          <div class="настройка-заголовок">Аркада</div>
+          <button type="button" class="настройка кнопка-строка" data-игра="2048"><svg class="иконка"><use href="#i-game"/></svg><div><h3>КИБЕРДЕК 2048</h3><p>Объединяй цифровые блоки</p></div><span>ИГРАТЬ ›</span></button>
+          <button type="button" class="настройка кнопка-строка" data-игра="нетраннер"><svg class="иконка"><use href="#i-game"/></svg><div><h3>НЕТРАННЕР</h3><p>Взламывай ядро и улучшай программы</p></div><span>ИГРАТЬ ›</span></button>
+        </div>
+
+        <div class="настройка-секция">
+          <div class="настройка-заголовок">Система</div>
+          <button type="button" class="настройка кнопка-строка" id="о-проекте"><svg class="иконка"><use href="#i-radio"/></svg><div><h3>О проекте</h3><p>Найт-Сити Нет — мобильный мессенджер</p></div><span>›</span></button>
+          <button type="button" class="настройка кнопка-строка" id="очистить"><svg class="иконка"><use href="#i-x"/></svg><div><h3>Сбросить демо-данные</h3><p>Вернуть исходные сообщения и прогресс</p></div><span style="color:var(--опасность)">СБРОС</span></button>
+        </div>
+        <div class="версия-карточка">NIGHT CITY NET // ВЕРСИЯ 2.077.202<br>САМОДОСТАТОЧНАЯ OFFLINE DEMO BUILD</div>
+      </section>
+
+      <section class="экран" id="экран-диалог" data-экран="диалог">
+        <div class="диалог-область">
+          <div class="шифрование">⌁ ЛОКАЛЬНЫЙ ЗАЩИЩЁННЫЙ КАНАЛ</div>
+          <div class="сообщения" id="сообщения"></div>
+          <div class="ввод-панель">
+            <button type="button" class="кнопка-иконка" id="вложение" aria-label="Прикрепить"><svg class="иконка"><use href="#i-paperclip"/></svg></button>
+            <textarea id="текст-сообщения" rows="1" placeholder="Сообщение..." aria-label="Текст сообщения"></textarea>
+            <div class="запись скрыто" id="панель-записи"><span class="точка"></span><span id="время-записи">00:00</span><span style="margin-left:auto;color:var(--тусклый)">нажми для отправки</span></div>
+            <button type="button" class="кнопка-иконка" id="микрофон" aria-label="Записать голосовое"><svg class="иконка"><use href="#i-mic"/></svg></button>
+            <button type="button" class="кнопка-иконка скрыто" id="отправить" aria-label="Отправить"><svg class="иконка"><use href="#i-send"/></svg></button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <nav class="нижняя-навигация" id="навигация" aria-label="Основная навигация">
+      <button type="button" class="нави-кнопка активна" data-переход="чаты"><svg class="иконка"><use href="#i-chat"/></svg><span>Чаты</span><b class="счётчик-нави" id="нави-непрочитано">3</b></button>
+      <button type="button" class="нави-кнопка" data-переход="контакты"><svg class="иконка"><use href="#i-users"/></svg><span>Контакты</span></button>
+      <button type="button" class="нави-кнопка" data-переход="эфир"><svg class="иконка"><use href="#i-radio"/></svg><span>Эфир</span></button>
+      <button type="button" class="нави-кнопка" data-переход="настройки"><svg class="иконка"><use href="#i-settings"/></svg><span>Настройки</span></button>
+    </nav>
+    <button type="button" class="плавающая" id="новый-чат" aria-label="Новый чат"><svg class="иконка"><use href="#i-edit"/></svg></button>
+
+    <section class="экран-звонка" id="экран-звонка" aria-label="Звонок">
+      <div class="звонок-верх">
+        <div class="аватар звонок-аватар" id="звонок-аватар">V</div>
+        <h2 id="звонок-имя">Виктор</h2>
+        <div class="звонок-статус" id="звонок-статус">ЗАЩИЩЁННОЕ СОЕДИНЕНИЕ...</div>
+      </div>
+      <div class="звонок-низ"><div class="звонок-сетка">
+        <div><button type="button" class="звонок-кнопка" data-звонок="микрофон" aria-label="Микрофон"><svg class="иконка"><use href="#i-mic"/></svg></button><div class="звонок-подпись">МИКРОФОН</div></div>
+        <div><button type="button" class="звонок-кнопка" data-звонок="динамик" aria-label="Динамик"><svg class="иконка"><use href="#i-volume"/></svg></button><div class="звонок-подпись">ДИНАМИК</div></div>
+        <div><button type="button" class="звонок-кнопка" data-звонок="камера" aria-label="Камера"><svg class="иконка"><use href="#i-video"/></svg></button><div class="звонок-подпись">КАМЕРА</div></div>
+        <div style="grid-column:2"><button type="button" class="звонок-кнопка сброс" id="сбросить-звонок" aria-label="Завершить звонок"><svg class="иконка"><use href="#i-phone"/></svg></button><div class="звонок-подпись">ЗАВЕРШИТЬ</div></div>
+      </div></div>
+    </section>
+
+    <section class="игра" id="игра-2048" aria-label="Кибердек 2048">
+      <header class="игра-шапка"><button type="button" class="кнопка-иконка закрыть-игру" aria-label="Закрыть"><svg class="иконка"><use href="#i-arrow"/></svg></button><h2>КИБЕРДЕК 2048</h2><button type="button" class="кнопка-иконка" id="новая-2048" aria-label="Новая игра">↻</button></header>
+      <div class="игра-тело">
+        <div class="счёт-игры"><div>СЧЁТ<b id="счёт-2048">0</b></div><div>РЕКОРД<b id="рекорд-2048">0</b></div></div>
+        <div class="поле-2048" id="поле-2048"></div>
+        <div class="управление-2048"><button type="button" class="вверх" data-ход="вверх">▲</button><button type="button" data-ход="влево">◀</button><button type="button" data-ход="вниз">▼</button><button type="button" data-ход="вправо">▶</button></div>
+        <p class="подсказка">Смахивай по полю или используй стрелки.<br>Объедини одинаковые цифровые блоки.</p>
+      </div>
+    </section>
+
+    <section class="игра" id="игра-нетраннер" aria-label="Нетраннер">
+      <header class="игра-шапка"><button type="button" class="кнопка-иконка закрыть-игру" aria-label="Закрыть"><svg class="иконка"><use href="#i-arrow"/></svg></button><h2>НЕТРАННЕР // ВЗЛОМ ЯДРА</h2><button type="button" class="кнопка-иконка" id="сброс-нетраннер" aria-label="Сбросить">↻</button></header>
+      <div class="игра-тело">
+        <div class="нетраннер-статы"><div>ДАННЫЕ<b id="нр-данные">0</b></div><div>ЗА КЛИК<b id="нр-клик">1</b></div><div>В СЕКУНДУ<b id="нр-сек">0</b></div></div>
+        <div class="ядро-обёртка"><div class="орбита"></div><button type="button" class="ядро" id="ядро"><span>◈</span></button></div>
+        <div class="энергия"><i id="нр-энергия"></i></div>
+        <div class="программы" id="программы"></div>
+      </div>
+    </section>
+
+    <dialog id="модал-новый">
+      <div class="модал-шапка"><h2>НОВОЕ СОЕДИНЕНИЕ</h2><button type="button" class="кнопка-иконка закрыть-модал" aria-label="Закрыть"><svg class="иконка"><use href="#i-x"/></svg></button></div>
+      <div class="модал-тело"><label class="поиск"><svg class="иконка"><use href="#i-search"/></svg><input type="text" class="поле" id="поиск-нового" placeholder="НИК ИЛИ ID НЕТРАННЕРА..."></label><div id="контакты-новый"></div></div>
+    </dialog>
+
+    <dialog id="модал-вложение">
+      <div class="модал-шапка"><h2>ПЕРЕДАТЬ ДАННЫЕ</h2><button type="button" class="кнопка-иконка закрыть-модал" aria-label="Закрыть"><svg class="иконка"><use href="#i-x"/></svg></button></div>
+      <div class="модал-тело"><div class="вариант-вложения"><button type="button" data-вложение="фото"><svg class="иконка"><use href="#i-image"/></svg>ИЗОБРАЖЕНИЕ</button><button type="button" data-вложение="файл"><svg class="иконка"><use href="#i-file"/></svg>ФАЙЛ</button><button type="button" data-вложение="контакт"><svg class="иконка"><use href="#i-users"/></svg>КОНТАКТ</button></div></div>
+    </dialog>
+
+    <dialog id="модал-инфо">
+      <div class="модал-шапка"><h2 id="инфо-заголовок">О ПРОЕКТЕ</h2><button type="button" class="кнопка-иконка закрыть-модал" aria-label="Закрыть"><svg class="иконка"><use href="#i-x"/></svg></button></div>
+      <div class="модал-тело" id="инфо-тело"></div>
+    </dialog>
+
+    <div class="тост" id="тост" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+  (() => {
+    "use strict";
+
+    // Все данные демоверсии остаются на устройстве. Здесь нет внешних запросов.
+    const КЛЮЧ = "night-city-net-demo-v2077202";
+    const $ = (селектор, корень = document) => корень.querySelector(селектор);
+    const $$ = (селектор, корень = document) => [...корень.querySelectorAll(селектор)];
+    const иконка = id => `<svg class="иконка"><use href="#${id}"/></svg>`;
+    const времяСейчас = () => new Date().toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit"});
+    const безопасно = текст => String(текст).replace(/[&<>'"]/g, знак => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[знак]));
+
+    const исходныеЧаты = [
+      {id:"viktor", имя:"Виктор Вектор", коротко:"VV", цвет:"62,238,255", тип:"личные", онлайн:true, время:"23:41", непрочитано:2, последнее:"Жду тебя у клиники. Не опаздывай.", статус:"В СЕТИ // ВАТСОН", сообщения:[
+        {моё:false, текст:"Связь чистая. Новый имплант уже на столе.", время:"23:34"},
+        {моё:true, текст:"Буду через десять минут. Подготовь диагностику.", время:"23:36"},
+        {моё:false, текст:"Жду тебя у клиники. Не опаздывай.", время:"23:41"}
+      ]},
+      {id:"judy", имя:"Джуди Альварес", коротко:"JA", цвет:"255,60,173", тип:"личные", онлайн:true, время:"22:18", непрочитано:1, последнее:"Отправила координаты. Канал защищён.", статус:"В СЕТИ // ЛИЗЗИЗ", сообщения:[
+        {моё:false, текст:"Есть новая запись брейнданса. Посмотришь?", время:"22:13"},
+        {моё:true, текст:"Да. Где встретимся?", время:"22:16"},
+        {моё:false, текст:"Отправила координаты. Канал защищён.", время:"22:18"}
+      ]},
+      {id:"afterlife", имя:"Банда «Посмертие»", коротко:"AL", цвет:"255,216,74", тип:"банды", онлайн:true, время:"21:52", непрочитано:0, последнее:"Rogue: Контракт обновлён. Сбор в 00:30.", статус:"7 УЧАСТНИКОВ // 4 В СЕТИ", сообщения:[
+        {моё:false, текст:"Rogue: Контракт обновлён. Сбор в 00:30.", время:"21:52"},
+        {моё:true, текст:"Принял. Буду на месте.", время:"21:54"}
+      ]},
+      {id:"panam", имя:"Панам Палмер", коротко:"PP", цвет:"255,118,50", тип:"личные", онлайн:false, время:"ВЧЕРА", непрочитано:0, последнее:"Увидимся за городской чертой.", статус:"БЫЛА В СЕТИ ВЧЕРА", сообщения:[
+        {моё:false, текст:"Кочевники выдвигаются на рассвете.", время:"18:20"},
+        {моё:false, текст:"Увидимся за городской чертой.", время:"18:21"}
+      ]},
+      {id:"netwatch", имя:"Чёрный протокол", коротко:"00", цвет:"101,255,154", тип:"банды", онлайн:true, время:"ПН", непрочитано:0, последнее:"Системное сообщение удалено.", статус:"ЗАКРЫТЫЙ КАНАЛ // 3 УЧАСТНИКА", сообщения:[
+        {моё:false, текст:"Системное сообщение удалено.", время:"03:07"}
+      ]}
+    ];
+
+    const контакты = [
+      {id:"viktor", имя:"Виктор Вектор", коротко:"VV", цвет:"62,238,255", статус:"Рипердок // Ватсон", онлайн:true},
+      {id:"judy", имя:"Джуди Альварес", коротко:"JA", цвет:"255,60,173", статус:"Техник брейнданса", онлайн:true},
+      {id:"rogue", имя:"Роуг Амендиарес", коротко:"RA", цвет:"255,216,74", статус:"Фиксер // Посмертие", онлайн:true},
+      {id:"river", имя:"Ривер Уорд", коротко:"RW", цвет:"101,255,154", статус:"Детектив NCPD", онлайн:true},
+      {id:"panam", имя:"Панам Палмер", коротко:"PP", цвет:"255,118,50", статус:"Альдекальдо", онлайн:false},
+      {id:"misty", имя:"Мисти Ольшевски", коротко:"MO", цвет:"184,119,255", статус:"Эзотерика Мисти", онлайн:false}
+    ];
+
+    const новости = [
+      {канал:"N54 NEWS", время:"2 МИН НАЗАД", заголовок:"Корпорации усилили контроль у Арасака-тауэр", текст:"На центральных магистралях замечены дополнительные патрули. Жителям рекомендуют выбирать объездные маршруты.", лайки:207},
+      {канал:"WNS // ПОДПОЛЬЕ", время:"18 МИН НАЗАД", заголовок:"Новый вирус атакует дешёвые нейроимпланты", текст:"Нетраннеры называют вредоносный код «Миражом». Обновите прошивку и не подключайтесь к неизвестным точкам доступа.", лайки:88},
+      {канал:"RADIO MORRO ROCK", время:"1 ЧАС НАЗАД", заголовок:"Samurai снова в городских чартах", текст:"Слушатели вернули легендарный трек на вершину рейтинга после ночного эфира с неизвестного передатчика.", лайки:451}
+    ];
+
+    const программыИсходные = [
+      {имя:"ПИНГ", знак:"⌁", база:15, сек:1}, {имя:"ВЗЛОМ", знак:"⌘", база:60, сек:4}, {имя:"ЧЕРВЬ", знак:"〄", база:210, сек:12},
+      {имя:"ПРИЗРАК", знак:"◌", база:740, сек:36}, {имя:"ЛЁД", знак:"❄", база:2100, сек:92}, {имя:"ДЕМОН", знак:"♢", база:6800, сек:250},
+      {имя:"БЛЭКАУТ", знак:"ϟ", база:17000, сек:610}, {имя:"СИНАПС", знак:"⌬", база:54000, сек:1700}, {имя:"СИНГУЛЯР", знак:"◈", база:160000, сек:5200}
+    ];
+
+    const исходноеСостояние = () => ({
+      чаты: JSON.parse(JSON.stringify(исходныеЧаты)),
+      настройки:{матрица:true, звук:true, цвет:"cyan"},
+      новостиЛайки:[],
+      игра2048:{поле:Array(16).fill(0), счёт:0, рекорд:0},
+      нетраннер:{данные:0, энергия:100, уровни:Array(9).fill(0)}
+    });
+
+    let состояние = загрузить();
+    let текущийЭкран = "чаты";
+    let активныйЧат = null;
+    let фильтрЧатов = "все";
+    let таймерТоста = 0;
+    let таймерЗвонка = 0;
+    let секундыЗвонка = 0;
+    let таймерЗаписи = 0;
+    let секундыЗаписи = 0;
+    let свайпСтарт = null;
+
+    function загрузить() {
+      try {
+        const данные = JSON.parse(localStorage.getItem(КЛЮЧ));
+        if (!данные || !Array.isArray(данные.чаты)) return исходноеСостояние();
+        const база = исходноеСостояние();
+        return {...база, ...данные, настройки:{...база.настройки,...данные.настройки}, игра2048:{...база.игра2048,...данные.игра2048}, нетраннер:{...база.нетраннер,...данные.нетраннер}};
+      } catch (_) { return исходноеСостояние(); }
+    }
+
+    function сохранить() {
+      try { localStorage.setItem(КЛЮЧ, JSON.stringify(состояние)); } catch (_) {}
+    }
+
+    function сигнал(частота = 620, длительность = .045) {
+      if (!состояние.настройки.звук) return;
+      try {
+        const контекст = new (window.AudioContext || window.webkitAudioContext)();
+        const осц = контекст.createOscillator();
+        const усил = контекст.createGain();
+        осц.type = "square"; осц.frequency.value = частота;
+        усил.gain.setValueAtTime(.025, контекст.currentTime);
+        усил.gain.exponentialRampToValueAtTime(.0001, контекст.currentTime + длительность);
+        осц.connect(усил).connect(контекст.destination); осц.start(); осц.stop(контекст.currentTime + длительность);
+      } catch (_) {}
+    }
+
+    function вибро(шаблон = 15) { try { navigator.vibrate?.(шаблон); } catch (_) {} }
+
+    function тост(текст) {
+      const узел = $("#тост");
+      узел.textContent = текст;
+      узел.classList.add("виден");
+      clearTimeout(таймерТоста);
+      таймерТоста = setTimeout(() => узел.classList.remove("виден"), 2200);
+    }
+
+    function аватарРазметка(элемент, онлайн = false) {
+      return `<div class="аватар" style="--цвет-аватара:${элемент.цвет}">${безопасно(элемент.коротко)}${онлайн ? '<span class="онлайн-точка"></span>' : ""}</div>`;
+    }
+
+    function форматЧисла(число) {
+      if (число >= 1e9) return (число/1e9).toFixed(1)+"B";
+      if (число >= 1e6) return (число/1e6).toFixed(1)+"M";
+      if (число >= 1e3) return (число/1e3).toFixed(1)+"K";
+      return Math.floor(число).toString();
+    }
+
+    function применитьНастройки() {
+      const цвета = {cyan:["#3eeeff","62, 238, 255"], pink:["#ff3cad","255, 60, 173"], green:["#65ff9a","101, 255, 154"], amber:["#ffd84a","255, 216, 74"]};
+      const набор = цвета[состояние.настройки.цвет] || цвета.cyan;
+      document.documentElement.style.setProperty("--акцент", набор[0]);
+      document.documentElement.style.setProperty("--акцент-rgb", набор[1]);
+      $("#матрица").style.display = состояние.настройки.матрица ? "block" : "none";
+      $$(".переключатель").forEach(кнопка => кнопка.classList.toggle("вкл", !!состояние.настройки[кнопка.dataset.настройка]));
+      $$(".цвет").forEach(кнопка => кнопка.classList.toggle("активен", кнопка.dataset.цвет === состояние.настройки.цвет));
+    }
+
+    function обновитьСчётчики() {
+      const непрочитано = состояние.чаты.reduce((сумма, чат) => сумма + (чат.непрочитано || 0), 0);
+      $("#стат-сообщения").textContent = непрочитано;
+      $("#стат-чаты").textContent = состояние.чаты.length;
+      $("#стат-онлайн").textContent = состояние.чаты.filter(чат => чат.онлайн).length;
+      $("#нави-непрочитано").textContent = непрочитано;
+      $("#нави-непрочитано").classList.toggle("скрыто", !непрочитано);
+    }
+
+    function отрисоватьЧаты() {
+      const запрос = $("#поиск-чатов").value.trim().toLowerCase();
+      const чаты = состояние.чаты.filter(чат => {
+        const найден = !запрос || `${чат.имя} ${чат.последнее}`.toLowerCase().includes(запрос);
+        const подходит = фильтрЧатов === "все" || (фильтрЧатов === "непрочитанные" ? чат.непрочитано > 0 : чат.тип === фильтрЧатов);
+        return найден && подходит;
+      });
+      $("#количество-чатов").textContent = `${чаты.length} ${чаты.length === 1 ? "УЗЕЛ" : "УЗЛОВ"}`;
+      $("#список-чатов").innerHTML = чаты.length ? чаты.map(чат => `
+        <button type="button" class="чат" data-чат="${чат.id}">
+          ${аватарРазметка(чат, чат.онлайн)}
+          <div class="чат-текст"><h3 class="чат-имя">${безопасно(чат.имя)} ${чат.тип === "банды" ? '<span class="метка">БАНДА</span>' : ""}</h3><p class="чат-сообщение">${безопасно(чат.последнее)}</p></div>
+          <div class="чат-мета"><time>${безопасно(чат.время)}</time>${чат.непрочитано ? `<span class="непрочитано">${чат.непрочитано}</span>` : '<span style="color:var(--акцент)">✓✓</span>'}</div>
+        </button>`).join("") : `<div class="пусто">${иконка("i-search")}<div>В этом секторе ничего не найдено</div></div>`;
+      обновитьСчётчики();
+    }
+
+    function отрисоватьКонтакты(запрос = "") {
+      запрос = запрос.toLowerCase();
+      const список = контакты.filter(к => !запрос || `${к.имя} ${к.статус}`.toLowerCase().includes(запрос));
+      $("#список-контактов").innerHTML = список.map(к => `<div class="контакт">
+        ${аватарРазметка(к, к.онлайн)}<div><h3>${безопасно(к.имя)}</h3><p>${к.онлайн ? "● В СЕТИ // " : "○ OFFLINE // "}${безопасно(к.статус)}</p></div>
+        <div class="контакт-действия"><button type="button" class="кнопка-иконка" data-написать="${к.id}" aria-label="Написать">${иконка("i-chat")}</button><button type="button" class="кнопка-иконка" data-позвонить="${к.id}" aria-label="Позвонить">${иконка("i-phone")}</button></div>
+      </div>`).join("") || `<div class="пусто">Контакт не найден</div>`;
+    }
+
+    function отрисоватьНовыйЧат(запрос = "") {
+      запрос = запрос.toLowerCase();
+      $("#контакты-новый").innerHTML = контакты.filter(к => !запрос || к.имя.toLowerCase().includes(запрос)).map(к => `<button type="button" class="чат" data-новый-контакт="${к.id}">${аватарРазметка(к, к.онлайн)}<div class="чат-текст"><h3 class="чат-имя">${безопасно(к.имя)}</h3><p class="чат-сообщение">${безопасно(к.статус)}</p></div><span>›</span></button>`).join("");
+    }
+
+    function отрисоватьНовости() {
+      $("#лента-новостей").innerHTML = новости.map((н, индекс) => {
+        const активна = состояние.новостиЛайки.includes(индекс);
+        return `<article class="новость"><div class="новость-мета"><span>${н.канал}</span><time>${н.время}</time></div><h3>${н.заголовок}</h3><p>${н.текст}</p><div class="новость-действия"><button type="button" class="тихая-кнопка ${активна ? "активна" : ""}" data-лайк="${индекс}">${иконка("i-heart")}<span>${н.лайки + (активна ? 1 : 0)}</span></button><button type="button" class="тихая-кнопка" data-поделиться="${индекс}">${иконка("i-share")}ПЕРЕДАТЬ</button></div></article>`;
+      }).join("");
+    }
+
+    const заголовки = {
+      чаты:["ЧАТЫ","ЗАЩИЩЁННЫЙ ЛОКАЛЬНЫЙ КАНАЛ"],
+      контакты:["КОНТАКТЫ","ДОСТУПНЫЕ НЕТРАННЕРЫ"],
+      эфир:["ГОРОДСКОЙ ЭФИР","НОВОСТИ И ПОДПОЛЬНЫЕ КАНАЛЫ"],
+      настройки:["НАСТРОЙКИ","КОНФИГУРАЦИЯ КИБЕРДЕКИ"]
+    };
+
+    function перейти(экран, добавитьИсторию = true) {
+      if (экран === "диалог") return;
+      текущийЭкран = экран;
+      $$(".экран").forEach(узел => узел.classList.toggle("активен", узел.dataset.экран === экран));
+      $$(".нави-кнопка").forEach(узел => узел.classList.toggle("активна", узел.dataset.переход === экран));
+      $("#заголовок").textContent = заголовки[экран][0];
+      $("#подзаголовок").textContent = заголовки[экран][1];
+      $("#новый-чат").classList.toggle("скрыто", экран !== "чаты");
+      $("#кнопка-поиск").classList.toggle("скрыто", !["чаты","контакты"].includes(экран));
+      if (добавитьИсторию) history.pushState({экран}, "");
+    }
+
+    function открытьЧат(id, добавитьИсторию = true) {
+      let чат = состояние.чаты.find(ч => ч.id === id);
+      if (!чат) {
+        const контакт = контакты.find(к => к.id === id);
+        if (!контакт) return;
+        чат = {...контакт, тип:"личные", время:времяСейчас(), непрочитано:0, последнее:"Новое защищённое соединение", сообщения:[]};
+        состояние.чаты.unshift(чат); сохранить(); отрисоватьЧаты();
+      }
+      активныйЧат = чат;
+      чат.непрочитано = 0;
+      сохранить(); обновитьСчётчики(); отрисоватьЧаты();
+      $("#главная-шапка").classList.add("скрыто");
+      $("#шапка-диалога").classList.remove("скрыто");
+      $("#навигация").classList.add("скрыто");
+      $("#новый-чат").classList.add("скрыто");
+      $("#содержимое").classList.add("без-навигации");
+      $$(".экран").forEach(узел => узел.classList.toggle("активен", узел.dataset.экран === "диалог"));
+      $("#диалог-имя").textContent = чат.имя;
+      $("#диалог-статус").textContent = чат.статус;
+      $("#диалог-аватар").style.setProperty("--цвет-аватара", чат.цвет);
+      $("#диалог-аватар").innerHTML = `${безопасно(чат.коротко)}${чат.онлайн ? '<span class="онлайн-точка"></span>' : ""}`;
+      отрисоватьСообщения();
+      if (добавитьИсторию) history.pushState({экран:"диалог", чат:id}, "");
+    }
+
+    function закрытьЧат(изИстории = false) {
+      активныйЧат = null;
+      $("#главная-шапка").classList.remove("скрыто");
+      $("#шапка-диалога").classList.add("скрыто");
+      $("#навигация").classList.remove("скрыто");
+      $("#содержимое").classList.remove("без-навигации");
+      перейти(текущийЭкран, false);
+      if (!изИстории) history.back();
+    }
+
+    function сообщениеРазметка(сообщение) {
+      let содержимое = "";
+      if (сообщение.тип === "аудио") {
+        const высоты = [8,15,5,19,11,21,8,17,6,14,20,9,16,7,12,18,6,13];
+        содержимое = `<div class="аудио"><button type="button" class="аудио-play" aria-label="Воспроизвести">▶</button><div class="волна">${высоты.map(h=>`<i style="--h:${h}"></i>`).join("")}</div><span>${сообщение.длительность || "0:05"}</span></div>`;
+      } else if (сообщение.тип === "фото") содержимое = `<div class="фото-вложение"></div><p>${безопасно(сообщение.текст || "Фрагмент из Найт-Сити")}</p>`;
+      else if (сообщение.тип === "файл") содержимое = `<div style="display:flex;align-items:center;gap:9px">${иконка("i-file")}<div><b style="font-size:10px">route_sector-7.dat</b><div style="color:var(--тусклый);font-size:8px">1.7 МБ // ЗАЩИЩЕНО</div></div></div>`;
+      else if (сообщение.тип === "контакт") содержимое = `<div style="display:flex;align-items:center;gap:9px">${иконка("i-users")}<div><b style="font-size:10px">КОНТАКТ: Nyx_404</b><div style="color:var(--тусклый);font-size:8px">ID 404-7701</div></div></div>`;
+      else содержимое = `<p>${безопасно(сообщение.текст)}</p>`;
+      return `<div class="сообщение ${сообщение.моё ? "моё" : ""}">${содержимое}<div class="сообщение-мета"><time>${безопасно(сообщение.время || времяСейчас())}</time>${сообщение.моё ? '<span class="галочки">✓✓</span>' : ""}</div></div>`;
+    }
+
+    function отрисоватьСообщения() {
+      if (!активныйЧат) return;
+      const контейнер = $("#сообщения");
+      контейнер.innerHTML = `<div class="разделитель-даты">СЕГОДНЯ // КЛЮЧ СОГЛАСОВАН</div>${активныйЧат.сообщения.map(сообщениеРазметка).join("")}`;
+      requestAnimationFrame(() => контейнер.scrollTop = контейнер.scrollHeight);
+    }
+
+    function добавитьСообщение(сообщение, ответить = false) {
+      if (!активныйЧат) return;
+      сообщение.время ||= времяСейчас();
+      активныйЧат.сообщения.push(сообщение);
+      активныйЧат.последнее = сообщение.тип === "аудио" ? "🎙 Голосовое сообщение" : сообщение.тип ? "Передача данных" : сообщение.текст;
+      активныйЧат.время = сообщение.время;
+      сохранить(); отрисоватьСообщения(); отрисоватьЧаты(); сигнал(840); вибро();
+      if (ответить && активныйЧат.тип === "личные" && активныйЧат.онлайн) {
+        const чатДляОтвета = активныйЧат;
+        setTimeout(() => {
+          const ответы = ["Принято. Держу канал открытым.","Увидел. Сверяю данные.","Чисто. Никаких хвостов в сети.","На связи. Отвечу через минуту."];
+          чатДляОтвета.сообщения.push({моё:false, текст:ответы[Math.floor(Math.random()*ответы.length)], время:времяСейчас()});
+          чатДляОтвета.последнее = чатДляОтвета.сообщения.at(-1).текст;
+          чатДляОтвета.время = времяСейчас();
+          if (активныйЧат?.id !== чатДляОтвета.id) чатДляОтвета.непрочитано++;
+          сохранить(); отрисоватьЧаты(); обновитьСчётчики();
+          if (активныйЧат?.id === чатДляОтвета.id) { отрисоватьСообщения(); сигнал(480); }
+        }, 1100 + Math.random()*1300);
+      }
+    }
+
+    function отправитьТекст() {
+      const поле = $("#текст-сообщения");
+      const текст = поле.value.trim();
+      if (!текст) return;
+      добавитьСообщение({моё:true, текст}, true);
+      поле.value = ""; поле.style.height = "auto"; обновитьКнопкуОтправки();
+    }
+
+    function обновитьКнопкуОтправки() {
+      const естьТекст = !!$("#текст-сообщения").value.trim();
+      $("#отправить").classList.toggle("скрыто", !естьТекст);
+      $("#микрофон").classList.toggle("скрыто", естьТекст);
+    }
+
+    function начатьЗапись() {
+      if (таймерЗаписи) {
+        clearInterval(таймерЗаписи); таймерЗаписи = 0;
+        const длина = Math.max(1, секундыЗаписи);
+        $("#панель-записи").classList.add("скрыто"); $("#текст-сообщения").classList.remove("скрыто");
+        добавитьСообщение({моё:true, тип:"аудио", длительность:`0:${String(длина).padStart(2,"0")}`}, true);
+        секундыЗаписи = 0; return;
+      }
+      секундыЗаписи = 0;
+      $("#панель-записи").classList.remove("скрыто"); $("#текст-сообщения").classList.add("скрыто");
+      $("#время-записи").textContent = "00:00";
+      таймерЗаписи = setInterval(() => { секундыЗаписи++; $("#время-записи").textContent = `00:${String(секундыЗаписи).padStart(2,"0")}`; if (секундыЗаписи >= 59) начатьЗапись(); }, 1000);
+      вибро([20,30,20]);
+    }
+
+    function начатьЗвонок(id, видео = false) {
+      const чат = состояние.чаты.find(ч => ч.id === id) || контакты.find(к => к.id === id);
+      if (!чат) return;
+      $("#звонок-имя").textContent = чат.имя;
+      $("#звонок-аватар").textContent = чат.коротко;
+      $("#звонок-аватар").style.setProperty("--цвет-аватара", чат.цвет);
+      $("#звонок-статус").textContent = видео ? "ВИДЕОКАНАЛ: СОЕДИНЕНИЕ..." : "ЗАЩИЩЁННОЕ СОЕДИНЕНИЕ...";
+      $("#экран-звонка").classList.add("активен");
+      const камера = $("[data-звонок='камера']"); камера.classList.toggle("активна", видео);
+      секундыЗвонка = 0; clearInterval(таймерЗвонка);
+      setTimeout(() => { if (!$("#экран-звонка").classList.contains("активен")) return; $("#звонок-статус").textContent = "00:00 // КАНАЛ ЗАЩИЩЁН"; таймерЗвонка = setInterval(() => { секундыЗвонка++; const м = String(Math.floor(секундыЗвонка/60)).padStart(2,"0"), с = String(секундыЗвонка%60).padStart(2,"0"); $("#звонок-статус").textContent = `${м}:${с} // КАНАЛ ЗАЩИЩЁН`; },1000); }, 1300);
+      сигнал(420,.12); вибро([60,80,60]);
+    }
+
+    function закончитьЗвонок() {
+      clearInterval(таймерЗвонка); таймерЗвонка = 0;
+      $("#экран-звонка").classList.remove("активен");
+      $$(".звонок-кнопка").forEach(к => { if (!к.classList.contains("сброс")) к.classList.remove("активна"); });
+      тост(секундыЗвонка ? `Звонок завершён // ${секундыЗвонка} сек.` : "Вызов отменён"); сигнал(220,.08);
+    }
+
+    // Игра 2048: чистая логика без зависимостей.
+    function подготовить2048(принудительно = false) {
+      const игра = состояние.игра2048;
+      if (принудительно || !игра.поле.some(Boolean)) { игра.поле = Array(16).fill(0); игра.счёт = 0; добавитьПлитку(); добавитьПлитку(); сохранить(); }
+      отрисовать2048();
+    }
+
+    function добавитьПлитку() {
+      const пустые = состояние.игра2048.поле.map((v,i)=>v ? -1 : i).filter(i=>i>=0);
+      if (!пустые.length) return;
+      состояние.игра2048.поле[пустые[Math.floor(Math.random()*пустые.length)]] = Math.random() < .9 ? 2 : 4;
+    }
+
+    function сжатьСтроку(строка) {
+      const числа = строка.filter(Boolean), результат = [], добавка = {счёт:0};
+      for (let i=0; i<числа.length; i++) {
+        if (числа[i] === числа[i+1]) { const новое = числа[i]*2; результат.push(новое); добавка.счёт += новое; i++; }
+        else результат.push(числа[i]);
+      }
+      while (результат.length < 4) результат.push(0);
+      return [результат, добавка.счёт];
+    }
+
+    function ход2048(направление) {
+      const старое = состояние.игра2048.поле.slice();
+      const мат = Array.from({length:4},(_,r)=>старое.slice(r*4,r*4+4));
+      const строки = [];
+      if (направление === "влево" || направление === "вправо") for (let r=0;r<4;r++) строки.push(mat[r].slice());
+      else for (let c=0;c<4;c++) строки.push(mat.map(row=>row[c]));
+      let очки = 0;
+      const новые = строки.map(строка => { if (["вправо","вниз"].includes(направление)) строка.reverse(); const [сжатая, добавка] = сжатьСтроку(строка); очки += добавка; if (["вправо","вниз"].includes(направление)) сжатая.reverse(); return сжатая; });
+      let поле;
+      if (направление === "влево" || направление === "вправо") поле = новые.flat();
+      else { поле = Array(16).fill(0); for(let c=0;c<4;c++) for(let r=0;r<4;r++) поле[r*4+c] = новые[c][r]; }
+      if (поле.every((v,i)=>v===старое[i])) return;
+      состояние.игра2048.поле = поле; состояние.игра2048.счёт += очки; состояние.игра2048.рекорд = Math.max(состояние.игра2048.рекорд, состояние.игра2048.счёт);
+      добавитьПлитку(); сохранить(); отрисовать2048(); сигнал(560);
+      if (поле.includes(2048)) тост("ДОСТИЖЕНИЕ: КИБЕРДЕК 2048");
+      if (!можноХодить2048()) тост("СЕТКА ЗАБЛОКИРОВАНА — НАЧНИ ЗАНОВО");
+    }
+
+    function можноХодить2048() {
+      const п = состояние.игра2048.поле;
+      if (п.includes(0)) return true;
+      for(let r=0;r<4;r++) for(let c=0;c<4;c++) { const i=r*4+c; if(c<3&&п[i]===п[i+1])return true; if(r<3&&п[i]===п[i+4])return true; }
+      return false;
+    }
+
+    function отрисовать2048() {
+      $("#поле-2048").innerHTML = состояние.игра2048.поле.map(n=>`<div class="ячейка-2048" data-n="${n || ""}">${n || ""}</div>`).join("");
+      $("#счёт-2048").textContent = состояние.игра2048.счёт;
+      $("#рекорд-2048").textContent = состояние.игра2048.рекорд;
+    }
+
+    function нетраннерСекунда() { return программыИсходные.reduce((сумма, п, i)=>сумма + п.сек*состояние.нетраннер.уровни[i], 0); }
+    function нетраннерКлик() { return 1 + состояние.нетраннер.уровни.reduce((с,i)=>с+i,0); }
+    function ценаПрограммы(i) { return Math.floor(программыИсходные[i].база * Math.pow(1.38, состояние.нетраннер.уровни[i])); }
+
+    function отрисоватьНетраннер() {
+      const нр = состояние.нетраннер;
+      $("#нр-данные").textContent = форматЧисла(нр.данные);
+      $("#нр-клик").textContent = форматЧисла(нетраннерКлик());
+      $("#нр-сек").textContent = форматЧисла(нетраннерСекунда());
+      $("#нр-энергия").style.width = `${нр.энергия}%`;
+      $("#программы").innerHTML = программыИсходные.map((п,i)=>{ const цена=ценаПрограммы(i), уровень=нр.уровни[i]; return `<button type="button" class="программа" data-программа="${i}" ${нр.данные < цена ? "disabled" : ""}><div class="знак">${п.знак}</div><h4>${п.имя} // УР.${уровень}</h4><p>+${п.сек}/сек</p><b>${форматЧисла(цена)} DATA</b></button>`; }).join("");
+    }
+
+    function взломЯдра(событие) {
+      const нр = состояние.нетраннер;
+      if (нр.энергия < 1) { тост("ЭНЕРГИЯ КИБЕРДЕКИ ИСЧЕРПАНА"); return; }
+      const сила = нетраннерКлик(); нр.данные += сила; нр.энергия = Math.max(0, нр.энергия-1);
+      const част = document.createElement("span"); част.className="частица"; част.textContent=`+${сила}`; част.style.left=`${событие.clientX || innerWidth/2}px`; част.style.top=`${событие.clientY || innerHeight/2}px`; част.style.setProperty("--x", `${Math.random()*70-35}px`); document.body.appendChild(част); setTimeout(()=>част.remove(),750);
+      вибро(8); сигнал(900,.025); отрисоватьНетраннер(); сохранить();
+    }
+
+    function купитьПрограмму(i) {
+      const цена = ценаПрограммы(i), нр = состояние.нетраннер;
+      if (нр.данные < цена) return;
+      нр.данные -= цена; нр.уровни[i]++; сохранить(); отрисоватьНетраннер(); сигнал(1100,.07); тост(`${программыИсходные[i].имя}: УРОВЕНЬ ${нр.уровни[i]}`);
+    }
+
+    function открытьИгру(имя) {
+      const id = имя === "2048" ? "#игра-2048" : "#игра-нетраннер";
+      $(id).classList.add("активна");
+      if (имя === "2048") подготовить2048(); else отрисоватьНетраннер();
+      history.pushState({игра:имя}, "");
+    }
+
+    function закрытьИгру(изИстории = false) {
+      $$(".игра").forEach(игра=>игра.classList.remove("активна"));
+      if (!изИстории) history.back();
+    }
+
+    function открытьИнфо(заголовок, html) {
+      $("#инфо-заголовок").textContent = заголовок;
+      $("#инфо-тело").innerHTML = html;
+      $("#модал-инфо").showModal();
+    }
+
+    function экспортировать() {
+      const blob = new Blob([JSON.stringify({версия:"2.077.202", дата:new Date().toISOString(), состояние}, null, 2)], {type:"application/json"});
+      const ссылка = document.createElement("a"); ссылка.href = URL.createObjectURL(blob); ссылка.download = `night-city-net-backup-${new Date().toISOString().slice(0,10)}.json`; ссылка.click(); setTimeout(()=>URL.revokeObjectURL(ссылка.href),1000); тост("РЕЗЕРВНАЯ КОПИЯ СОЗДАНА");
+    }
+
+    async function импортировать(файл) {
+      try {
+        const данные = JSON.parse(await файл.text());
+        if (!данные.состояние?.чаты || !данные.состояние?.настройки) throw new Error();
+        состояние = данные.состояние; сохранить(); применитьНастройки(); отрисоватьВсё(); тост("РЕЗЕРВНАЯ КОПИЯ ВОССТАНОВЛЕНА");
+      } catch (_) { тост("ОШИБКА: НЕВЕРНЫЙ ФАЙЛ РЕЗЕРВНОЙ КОПИИ"); }
+    }
+
+    function отрисоватьВсё() { применитьНастройки(); отрисоватьЧаты(); отрисоватьКонтакты(); отрисоватьНовости(); отрисоватьНовыйЧат(); подготовить2048(); отрисоватьНетраннер(); }
+
+    function запуститьМатрицу() {
+      const холст = $("#матрица"), к = холст.getContext("2d");
+      let ширина=0, высота=0, колонки=0, капли=[];
+      const размер = 15, символы = "01アイウエオカキクケコサシスセソナイトシティNET";
+      function размерить() { const dpr=Math.min(devicePixelRatio||1,2); ширина=innerWidth; высота=innerHeight; холст.width=ширина*dpr; холст.height=высота*dpr; холст.style.width=ширина+"px"; холст.style.height=высота+"px"; к.setTransform(dpr,0,0,dpr,0,0); колонки=Math.ceil(ширина/размер); капли=Array.from({length:колонки},()=>Math.random()*-60); }
+      function кадр() {
+        if (состояние.настройки.матрица) {
+          к.fillStyle="rgba(3,8,12,.075)"; к.fillRect(0,0,ширина,высота); к.font=`${размер}px monospace`; к.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--акцент");
+          for(let i=0;i<колонки;i++){ const символ=символы[Math.floor(Math.random()*символы.length)]; к.fillText(символ,i*размер,капли[i]*размер); if(капли[i]*размер>высота&&Math.random()>.975)капли[i]=0; капли[i]+=.38; }
+        }
+        requestAnimationFrame(кадр);
+      }
+      размерить(); addEventListener("resize", размерить); кадр();
+    }
+
+    function обработатьСеть() { $("#офлайн").classList.toggle("скрыто", navigator.onLine); }
+
+    // Делегирование кликов позволяет безопасно перерисовывать списки.
+    document.addEventListener("click", событие => {
+      const цель = событие.target;
+      const чат = цель.closest("[data-чат]"); if (чат) { открытьЧат(чат.dataset.чат); return; }
+      const переход = цель.closest("[data-переход]"); if (переход) { перейти(переход.dataset.переход); сигнал(); return; }
+      const написать = цель.closest("[data-написать]"); if (написать) { открытьЧат(написать.dataset.написать); return; }
+      const позвонить = цель.closest("[data-позвонить]"); if (позвонить) { начатьЗвонок(позвонить.dataset.позвонить); return; }
+      const новый = цель.closest("[data-новый-контакт]"); if (новый) { $("#модал-новый").close(); открытьЧат(новый.dataset.новыйКонтакт); return; }
+      const лайк = цель.closest("[data-лайк]"); if (лайк) { const i=+лайк.dataset.лайк, позиция=состояние.новостиЛайки.indexOf(i); позиция>=0?состояние.новостиЛайки.splice(позиция,1):состояние.новостиЛайки.push(i); сохранить(); отрисоватьНовости(); сигнал(760); return; }
+      const поделиться = цель.closest("[data-поделиться]"); if (поделиться) { navigator.share?.({title:новости[+поделиться.dataset.поделиться].заголовок,text:новости[+поделиться.dataset.поделиться].текст}).catch(()=>{}) || тост("НОВОСТЬ СКОПИРОВАНА В КАНАЛ"); return; }
+      const настройка = цель.closest("[data-настройка]"); if (настройка) { const имя=настройка.dataset.настройка; состояние.настройки[имя]=!состояние.настройки[имя]; сохранить(); применитьНастройки(); сигнал(); return; }
+      const цвет = цель.closest("[data-цвет]"); if (цвет) { состояние.настройки.цвет=цвет.dataset.цвет; сохранить(); применитьНастройки(); сигнал(900); return; }
+      const игра = цель.closest("[data-игра]"); if (игра) { открытьИгру(игра.dataset.игра); return; }
+      const ход = цель.closest("[data-ход]"); if (ход) { ход2048(ход.dataset.ход); return; }
+      const программа = цель.closest("[data-программа]"); if (программа) { купитьПрограмму(+программа.dataset.программа); return; }
+      const звонок = цель.closest("[data-звонок]"); if (звонок) { звонок.classList.toggle("активна"); сигнал(); return; }
+      const влож = цель.closest("[data-вложение]"); if (влож) { $("#модал-вложение").close(); добавитьСообщение({моё:true,тип:влож.dataset.вложение,текст:влож.dataset.вложение==="фото"?"Снимок из северного сектора":""}, true); return; }
+      if (цель.closest(".закрыть-модал")) цель.closest("dialog").close();
+      if (цель.closest(".закрыть-игру")) закрытьИгру();
+    });
+
+    $("#поиск-чатов").addEventListener("input", отрисоватьЧаты);
+    $("#поиск-контактов").addEventListener("input", событие=>отрисоватьКонтакты(событие.target.value));
+    $("#поиск-нового").addEventListener("input", событие=>отрисоватьНовыйЧат(событие.target.value));
+    $("#фильтры").addEventListener("click", событие=>{ const кнопка=событие.target.closest("[data-фильтр]"); if(!кнопка)return; фильтрЧатов=кнопка.dataset.фильтр; $$(".фильтр").forEach(ф=>ф.classList.toggle("активен",ф===кнопка)); отрисоватьЧаты(); });
+    $("#новый-чат").addEventListener("click",()=>$("#модал-новый").showModal());
+    $("#кнопка-поиск").addEventListener("click",()=>{ const id=текущийЭкран==="контакты"?"#поиск-контактов":"#поиск-чатов"; $(id).focus(); });
+    $("#назад-из-диалога").addEventListener("click",()=>закрытьЧат());
+    $("#вложение").addEventListener("click",()=>$("#модал-вложение").showModal());
+    $("#отправить").addEventListener("click",отправитьТекст);
+    $("#микрофон").addEventListener("click",начатьЗапись);
+    $("#текст-сообщения").addEventListener("input",событие=>{ событие.target.style.height="auto"; событие.target.style.height=Math.min(100,событие.target.scrollHeight)+"px"; обновитьКнопкуОтправки(); });
+    $("#текст-сообщения").addEventListener("keydown",событие=>{ if(событие.key==="Enter"&&!событие.shiftKey){событие.preventDefault();отправитьТекст();} });
+    $("#аудиозвонок").addEventListener("click",()=>активныйЧат&&начатьЗвонок(активныйЧат.id));
+    $("#видеозвонок").addEventListener("click",()=>активныйЧат&&начатьЗвонок(активныйЧат.id,true));
+    $("#сбросить-звонок").addEventListener("click",закончитьЗвонок);
+    $("#ядро").addEventListener("click",взломЯдра);
+    $("#новая-2048").addEventListener("click",()=>{ if(confirm("Начать новую игру?"))подготовить2048(true); });
+    $("#сброс-нетраннер").addEventListener("click",()=>{ if(!confirm("Сбросить весь прогресс Нетраннера?"))return; состояние.нетраннер=исходноеСостояние().нетраннер;сохранить();отрисоватьНетраннер(); });
+    $("#экспорт").addEventListener("click",экспортировать);
+    $("#импорт-кнопка").addEventListener("click",()=>$("#импорт-файл").click());
+    $("#импорт-файл").addEventListener("change",событие=>{if(событие.target.files[0])импортировать(событие.target.files[0]);событие.target.value="";});
+    $("#о-проекте").addEventListener("click",()=>открытьИнфо("О ПРОЕКТЕ",`<div style="text-align:center">${аватарРазметка({коротко:"NC",цвет:"62,238,255"})}<h2 style="color:var(--акцент)">НАЙТ-СИТИ НЕТ</h2></div><p style="color:var(--тусклый);font-size:11px;line-height:1.6">Мобильный мессенджер в киберпанк-стиле. Эта сборка — самостоятельный интерактивный прототип: чаты и прогресс хранятся локально, а звонки и ответы собеседников имитируются для демонстрации интерфейса.</p><p style="font:10px monospace;color:var(--акцент)">АВТОР: БОРИС // TARANKA2233<br>ВЕРСИЯ: 2.077.202<br>РЕЖИМ: OFFLINE DEMO</p>`));
+    $("#профиль-диалога").addEventListener("click",()=>активныйЧат&&открытьИнфо("ПРОФИЛЬ КАНАЛА",`<div style="text-align:center">${аватарРазметка(активныйЧат,активныйЧат.онлайн)}<h2>${безопасно(активныйЧат.имя)}</h2><p style="color:var(--акцент);font:10px monospace">${безопасно(активныйЧат.статус)}</p></div><button type="button" class="большая-кнопка" onclick="document.querySelector('#модал-инфо').close()">ЗАКРЫТЬ ПРОФИЛЬ</button>`));
+    $("#очистить").addEventListener("click",()=>{if(!confirm("Удалить локальные сообщения, настройки и игровой прогресс?"))return;localStorage.removeItem(КЛЮЧ);состояние=исходноеСостояние();сохранить();отрисоватьВсё();тост("ДЕМО-ДАННЫЕ ВОССТАНОВЛЕНЫ");});
+    $("#принять-контакт").addEventListener("click",()=>{$("#запрос-контакта").remove();тост("КАНАЛ С NYX_404 УСТАНОВЛЕН");});
+    $("#отклонить-контакт").addEventListener("click",()=>{$("#запрос-контакта").remove();тост("ЗАПРОС ОТКЛОНЁН");});
+
+    $("#поле-2048").addEventListener("pointerdown",e=>свайпСтарт={x:e.clientX,y:e.clientY});
+    $("#поле-2048").addEventListener("pointerup",e=>{if(!свайпСтарт)return;const dx=e.clientX-свайпСтарт.x,dy=e.clientY-свайпСтарт.y;свайпСтарт=null;if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;ход2048(Math.abs(dx)>Math.abs(dy)?(dx>0?"вправо":"влево"):(dy>0?"вниз":"вверх"));});
+    addEventListener("keydown",e=>{if(!$("#игра-2048").classList.contains("активна"))return;const карта={ArrowLeft:"влево",ArrowRight:"вправо",ArrowUp:"вверх",ArrowDown:"вниз"};if(карта[e.key]){e.preventDefault();ход2048(карта[e.key]);}});
+    addEventListener("online",обработатьСеть); addEventListener("offline",обработатьСеть);
+    addEventListener("popstate",событие=>{ if($("#экран-звонка").classList.contains("активен")){закончитьЗвонок();return;} if($$(".игра.активна").length){закрытьИгру(true);return;} if(активныйЧат){закрытьЧат(true);return;} const экран=событие.state?.экран||"чаты";перейти(экран,false); });
+
+    // Пассивный доход и восстановление энергии Нетраннера.
+    setInterval(()=>{ const нр=состояние.нетраннер, доход=нетраннерСекунда(); if(доход)нр.данные+=доход; нр.энергия=Math.min(100,нр.энергия+2); if($("#игра-нетраннер").classList.contains("активна"))отрисоватьНетраннер(); if(доход||нр.энергия<100)сохранить(); },1000);
+
+    const строкиЗагрузки=["> ПРОВЕРКА ЛОКАЛЬНОГО ХРАНИЛИЩА... OK","> СОГЛАСОВАНИЕ ВИЗУАЛЬНОГО ПРОТОКОЛА... OK","> КАНАЛ NIGHT CITY NET ОТКРЫТ"];
+    строкиЗагрузки.forEach((строка,i)=>setTimeout(()=>$("#лог-загрузки").textContent=строка,350+i*380));
+    setTimeout(()=>$("#заставка").classList.add("готово"),1450);
+    $("#заставка").addEventListener("click",()=>$("#заставка").classList.add("готово"));
+
+    history.replaceState({экран:"чаты"},"");
+    обработатьСеть(); отрисоватьВсё(); запуститьМатрицу();
+  })();
+  </script>
+</body>
+</html>
