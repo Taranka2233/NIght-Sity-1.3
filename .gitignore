@@ -2,6 +2,8 @@
 night-sity-firebase-adminsdk-*.json
 *.pem
 *.p12
+debug.keystore
+android/app/google-services.json
 
 # Build outputs and local archives
 *.zip
@@ -9,6 +11,7 @@ android/app/build/
 android/.gradle/
 www/
 resources/
+artifact-inspect/
 
 # Local tooling
 node_modules/

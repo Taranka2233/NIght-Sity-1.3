@@ -1,0 +1,28 @@
+name: Complete rebuild upload
+
+on:
+  push:
+    branches:
+      - agent/rebuild-night-city
+
+permissions:
+  contents: write
+
+jobs:
+  apply-rebuild:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply verified rebuild
+        shell: bash
+        run: |
+          cat .rebuild/patch.b64.* | base64 -d | gzip -d > /tmp/rebuild.patch
+          git apply --index --binary /tmp/rebuild.patch
+          git rm -r .rebuild
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Complete Night City verified rebuild"
+          git push origin HEAD:agent/rebuild-night-city
