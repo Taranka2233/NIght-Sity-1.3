@@ -595,7 +595,7 @@ a:hover{color:#00f0ff}
             </div>
             <div style="margin-top:5px;font-size:13px;color:#8a8a96;line-height:1.5">{{ myStatus }}</div>
 
-            
+
             <div style="margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--nc-accent);letter-spacing:1px">▸ ИНФОРМАЦИЯ</div>
             <div style="margin-top:8px;display:flex;flex-direction:column;gap:1px;background:#23232e;border:1px solid #23232e">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 14px;background:#12121a">
@@ -733,12 +733,12 @@ a:hover{color:#00f0ff}
           <div style="margin-top:22px;padding:14px;background:rgba(0,240,255,.04);border:1px solid #1a2a30">
             <div style="font-family:'Chakra Petch','Russo One',sans-serif;font-size:13px;color:#00f0ff;letter-spacing:1px;margin-bottom:4px">🔒 РЕЗЕРВНАЯ КОПИЯ КЛЮЧА</div>
             <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8a8a96;line-height:1.5;margin-bottom:10px">Твой ключ шифрования хранится только на этом телефоне. Сделай копию под паролем — иначе при переустановке приложения прежние зашифрованные сообщения будут потеряны.</div>
-            <input type="password" value="{{ e2eBackupPass }}" oninput="{{ e2eBackupInput }}" placeholder="пароль для копии (мин. 4 символа)" style="width:100%;box-sizing:border-box;background:#08080c;border:1px solid #2a2a34;color:#e8f4f8;font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px;margin-bottom:8px;outline:none">
+            <input type="password" value="{{ e2eBackupPass }}" oninput="{{ e2eBackupInput }}" placeholder="пароль для копии (мин. 12 символов)" style="width:100%;box-sizing:border-box;background:#08080c;border:1px solid #2a2a34;color:#e8f4f8;font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px;margin-bottom:8px;outline:none">
             <button onclick="{{ doBackupKey }}" style="width:100%;padding:11px;background:transparent;border:1px solid #00f0ff;color:#00f0ff;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer">СОЗДАТЬ КОПИЮ КЛЮЧА</button>
           </div>
 
           <button onclick="{{ logout }}" style="margin-top:22px;width:100%;padding:13px;background:transparent;border:1px solid #ff003c;color:#ff003c;font-family:'Russo One',sans-serif;font-size:13px;letter-spacing:1.5px;cursor:pointer;clip-path:polygon(0 0,100% 0,100% 70%,94% 100%,0 100%)">⏻ ВЫЙТИ / ОТКЛЮЧИТЬСЯ</button>
-          <div style="margin-top:18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:#3a3a44">ПРОСНИСЬ, САМУРАЙ // СБОРКА 2.077.0</div>
+          <div style="margin-top:18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:#3a3a44">ПРОСНИСЬ, САМУРАЙ // СБОРКА 2.077.202</div>
         </div>
         </sc-if>
 
@@ -1227,7 +1227,7 @@ a:hover{color:#00f0ff}
           <!-- удалённый поток (видео + звук собеседника) -->
           <video ref="{{ remoteRef }}" autoplay muted playsinline style="{{ remoteVidStyle }}"></video>
           <audio ref="{{ remoteAudioRef }}" autoplay></audio>
-          
+
           <!-- ВИДЕОЗВОНОК: рамка визуального фида -->
           <sc-if value="{{ videoStageShow }}">
             <div style="position:absolute;left:5vw;right:5vw;top:120px;bottom:180px;z-index:1;overflow:hidden;background:repeating-linear-gradient(120deg,#12121a 0,#12121a 16px,#0d0d14 16px,#0d0d14 32px);border:2px solid var(--nc-accent);box-shadow:0 0 40px rgba(var(--nc-accent-rgb),.25),inset 0 0 60px rgba(var(--nc-accent-rgb),.1)">
@@ -1957,8 +1957,8 @@ a:hover{color:#00f0ff}
               <div style="font-family:'Russo One',sans-serif;font-size:15px;color:#ff003c;letter-spacing:1px;margin-bottom:10px">// ПОДТВЕРЖДЕНИЕ</div>
               <div style="font-family:'Play',sans-serif;font-size:14px;color:#e8e8ec;line-height:1.5">{{ confirmText }}</div>
               <div style="display:flex;gap:10px;margin-top:20px">
-                <button onclick="{{ confirmNo }}" style="flex:1;padding:12px;background:transparent;border:1px solid #3a3a44;color:#c8c8d0;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer">ОТМЕНА</button>
-                <button onclick="{{ confirmYes }}" style="flex:1;padding:12px;background:#ff003c;border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;clip-path:polygon(0 0,100% 0,100% 70%,94% 100%,0 100%)">УДАЛИТЬ</button>
+                <button onclick="{{ confirmNo }}" style="flex:1;padding:12px;background:transparent;border:1px solid #3a3a44;color:#c8c8d0;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer">{{ confirmNoLabel }}</button>
+                <button onclick="{{ confirmYes }}" style="flex:1;padding:12px;background:{{ confirmColor }};border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;clip-path:polygon(0 0,100% 0,100% 70%,94% 100%,0 100%)">{{ confirmYesLabel }}</button>
               </div>
             </div>
           </div>
@@ -2183,7 +2183,7 @@ a:hover{color:#00f0ff}
           <sc-if value="{{ dlToast }}">
           <div style="position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:95;background:#12121a;border:1px solid var(--nc-accent);box-shadow:0 0 20px rgba(var(--nc-accent-rgb),.3);padding:11px 18px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#e8e8ec;white-space:nowrap">{{ dlToast }}</div>
           </sc-if>
-          
+
           <sc-if value="{{ pinScreenOpen }}">
           <div style="position:fixed;inset:0;z-index:97;background:#050508;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
             <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#0a0a0f;background:var(--nc-accent);padding:5px 14px;letter-spacing:2px;margin-bottom:16px;border-radius:3px">ВЕРСИЯ 2.077.202</div>
@@ -2281,12 +2281,9 @@ const NC = (() => {
 
   async function load() {
     if (fb) return fb;
-    const base = 'https://www.gstatic.com/firebasejs/10.12.2/';
-    const [appMod, authMod, fsMod] = await Promise.all([
-      import(base + 'firebase-app.js'),
-      import(base + 'firebase-auth.js'),
-      import(base + 'firebase-firestore.js'),
-    ]);
+    if (!window.NCFirebaseModules) await import('./firebase-bundle.js');
+    if (!window.NCFirebaseModules) throw new Error('Firebase bundle is unavailable');
+    const { appMod, authMod, fsMod } = window.NCFirebaseModules;
     fb = { appMod, authMod, fsMod };
     return fb;
   }
@@ -2303,7 +2300,10 @@ const NC = (() => {
     return ready;
   }
 
-  const handleFromEmail = (email) => '@' + String(email).split('@')[0].toLowerCase();
+  const handleFromEmail = (email) => {
+    const raw = String(email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_.-]/g, '').replace(/^[_.-]+|[_.-]+$/g, '');
+    return '@' + (raw.slice(0, 24) || 'user');
+  };
   const normHandle = (h) => { h = String(h).trim().toLowerCase(); return h.startsWith('@') ? h : '@' + h; };
   const chatIdFor = (a, b) => [a, b].sort().join('__');
 
@@ -2312,14 +2312,35 @@ const NC = (() => {
     const { authMod, fsMod } = fb;
     const cred = await authMod.createUserWithEmailAndPassword(auth, email, pass);
     const uid = cred.user.uid;
-    const handle = handleFromEmail(email);
-    const nm = name || handle.slice(1).toUpperCase();
-    const profile = { uid, email, handle, name: nm, nameLower: String(nm).toLowerCase(), phone: '', status: '', createdAt: fsMod.serverTimestamp() };
-    await fsMod.setDoc(fsMod.doc(db, 'users', uid), profile);
-    await fsMod.setDoc(fsMod.doc(db, 'handles', handle), { uid });
-    try { await authMod.sendEmailVerification(cred.user); } catch (e) {}
-    try { await authMod.signOut(auth); } catch (e) {}
-    return { profile, needsVerify: true };
+    const baseHandle = handleFromEmail(email);
+    const candidates = [baseHandle, (baseHandle.slice(0, 17) + '-' + uid.slice(0, 6)).slice(0, 25)];
+    let profile = null;
+    try {
+      for (const handle of candidates) {
+        const nm = String(name || handle.slice(1).toUpperCase()).trim().slice(0, 48);
+        const next = { uid, handle, name: nm, nameLower: nm.toLowerCase(), status: '', createdAt: fsMod.serverTimestamp() };
+        try {
+          await fsMod.runTransaction(db, async (tx) => {
+            const handleRef = fsMod.doc(db, 'handles', handle);
+            const occupied = await tx.get(handleRef);
+            if (occupied.exists()) throw new Error('HANDLE_TAKEN');
+            tx.set(fsMod.doc(db, 'users', uid), next);
+            tx.set(handleRef, { uid, createdAt: fsMod.serverTimestamp() });
+          });
+          profile = next;
+          break;
+        } catch (e) {
+          if (!String(e && e.message || e).includes('HANDLE_TAKEN')) throw e;
+        }
+      }
+      if (!profile) throw new Error('HANDLE_UNAVAILABLE');
+      await authMod.sendEmailVerification(cred.user);
+      await authMod.signOut(auth);
+      return { profile, needsVerify: true };
+    } catch (e) {
+      try { await authMod.deleteUser(cred.user); } catch (_) {}
+      throw e;
+    }
   }
 
   async function signIn(email, pass) {
@@ -2341,10 +2362,68 @@ const NC = (() => {
     return s.exists() ? s.data() : null;
   }
 
+  async function ensureProfile(user) {
+    await init();
+    const { fsMod } = fb;
+    const uid = user && user.uid;
+    if (!uid) throw new Error('Missing authenticated user');
+    const userRef = fsMod.doc(db, 'users', uid);
+    const existing = await fsMod.getDoc(userRef);
+    if (existing.exists()) return existing.data();
+    const baseHandle = handleFromEmail(user.email || ('user-' + uid.slice(0, 6)));
+    const candidates = [baseHandle, (baseHandle.slice(0, 17) + '-' + uid.slice(0, 6)).slice(0, 25)];
+    for (const handle of candidates) {
+      const name = handle.slice(1).toUpperCase().slice(0, 48);
+      const profile = { uid, handle, name, nameLower: name.toLowerCase(), status: '', createdAt: fsMod.serverTimestamp() };
+      try {
+        await fsMod.runTransaction(db, async (tx) => {
+          const handleRef = fsMod.doc(db, 'handles', handle);
+          const occupied = await tx.get(handleRef);
+          if (occupied.exists() && occupied.data().uid !== uid) throw new Error('HANDLE_TAKEN');
+          tx.set(userRef, profile);
+          if (!occupied.exists()) tx.set(handleRef, { uid, createdAt: fsMod.serverTimestamp() });
+        });
+        return profile;
+      } catch (e) {
+        if (!String(e && e.message || e).includes('HANDLE_TAKEN')) throw e;
+      }
+    }
+    throw new Error('HANDLE_UNAVAILABLE');
+  }
+
   async function saveProfile(uid, patch) {
     await init();
     if (patch && patch.name) patch = { ...patch, nameLower: String(patch.name).toLowerCase() };
-    await fb.fsMod.setDoc(fb.fsMod.doc(db, 'users', uid), patch, { merge: true });
+    const allowed = new Set(['name', 'nameLower', 'status', 'avatar', 'pubKey', 'online', 'lastActive']);
+    const clean = {};
+    Object.keys(patch || {}).forEach((key) => { if (allowed.has(key)) clean[key] = patch[key]; });
+    if (!Object.keys(clean).length) throw new Error('No public profile fields to save');
+    await fb.fsMod.setDoc(fb.fsMod.doc(db, 'users', uid), clean, { merge: true });
+  }
+
+  async function removeLegacyPrivateFields(uid) {
+    await init();
+    const { fsMod } = fb;
+    await fsMod.updateDoc(fsMod.doc(db, 'users', uid), {
+      email: fsMod.deleteField(), phone: fsMod.deleteField(), fcmToken: fsMod.deleteField(),
+    });
+  }
+
+  async function getPrivate(uid, document) {
+    await init();
+    const snap = await fb.fsMod.getDoc(fb.fsMod.doc(db, 'users', uid, 'private', document));
+    return snap.exists() ? snap.data() : null;
+  }
+
+  async function savePrivate(uid, document, patch) {
+    await init();
+    await fb.fsMod.setDoc(fb.fsMod.doc(db, 'users', uid, 'private', document), patch, { merge: true });
+  }
+
+  async function getIdToken(forceRefresh = false) {
+    await init();
+    if (!auth || !auth.currentUser) throw new Error('Not authenticated');
+    return auth.currentUser.getIdToken(forceRefresh);
   }
 
   async function resendVerification(email, pass) {
@@ -2403,13 +2482,33 @@ const NC = (() => {
   }
 
   function watchChats(myUid, cb) {
-    let unsub = () => {};
+    let unsubs = [];
     init().then(() => {
       const { fsMod } = fb;
-      const q = fsMod.query(fsMod.collection(db, 'chats'), fsMod.where('members', 'array-contains', myUid));
-      unsub = fsMod.onSnapshot(q, (snap) => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+      const buckets = { member: new Map(), pending: new Map() };
+      const emit = () => cb([...new Map([...buckets.pending, ...buckets.member]).values()]);
+      const listen = (key, field) => {
+        const q = fsMod.query(fsMod.collection(db, 'chats'), fsMod.where(field, 'array-contains', myUid));
+        unsubs.push(fsMod.onSnapshot(q, (snap) => {
+          buckets[key] = new Map(snap.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
+          emit();
+        }, () => {}));
+      };
+      listen('member', 'members');
+      listen('pending', 'pending');
     }).catch(() => {});
-    return () => unsub();
+    return () => unsubs.forEach(unsub => { try { unsub(); } catch (e) {} });
+  }
+
+  async function ensureDirectChat(chatId, members) {
+    await init();
+    const cleanMembers = [...new Set((members || []).filter(Boolean))];
+    if (cleanMembers.length !== 2) throw new Error('Direct chat requires two members');
+    const ref = fb.fsMod.doc(db, 'chats', chatId);
+    const snap = await fb.fsMod.getDoc(ref);
+    if (!snap.exists()) {
+      await fb.fsMod.setDoc(ref, { members: cleanMembers, createdBy: auth.currentUser.uid, updatedAt: fb.fsMod.serverTimestamp(), lastText: '', lastFrom: '' });
+    }
   }
 
   function _unreadInc(members, fromUid) {
@@ -2418,6 +2517,7 @@ const NC = (() => {
   async function sendText(chatId, members, fromUid, text) {
     await init();
     const { fsMod } = fb;
+    if ((members || []).length === 2) await ensureDirectChat(chatId, members);
     await fsMod.setDoc(fsMod.doc(db, 'chats', chatId),
       { members, updatedAt: fsMod.serverTimestamp(), lastText: text, lastFrom: fromUid, unread: _unreadInc(members, fromUid) }, { merge: true });
     await fsMod.addDoc(fsMod.collection(db, 'chats', chatId, 'messages'),
@@ -2426,12 +2526,21 @@ const NC = (() => {
   async function sendMessage(chatId, members, fromUid, payload) {
     await init();
     const { fsMod } = fb;
+    if ((members || []).length === 2) await ensureDirectChat(chatId, members);
     const t = payload.type || 'text';
     const preview = payload.text || (t === 'image' ? '🖼 Фото' : t === 'voice' ? '🎤 Голосовое' : t === 'sticker' ? 'Стикер' : t === 'file' ? ('📎 ' + (payload.fileName || 'файл')) : t === 'video' ? '🎬 Видео' : '');
     await fsMod.setDoc(fsMod.doc(db, 'chats', chatId),
       { members, updatedAt: fsMod.serverTimestamp(), lastText: preview, lastFrom: fromUid, unread: _unreadInc(members, fromUid) }, { merge: true });
     const doc = { from: fromUid, type: t, ts: fsMod.serverTimestamp() };
-    ['text', 'imgSrc', 'audioSrc', 'vidSrc', 'stickerSrc', 'fileData', 'fileName', 'duration', 'caption', 'ice', 'iceData', 'ghost', 'ghostSec', 'ghostAt', 'replyTo', 'replyText', 'replyFrom'].forEach(k => { if (payload[k] != null) doc[k] = payload[k]; });
+    [
+      'text', 'imgSrc', 'audioSrc', 'vidSrc', 'stickerSrc', 'fileData', 'fileName', 'duration', 'caption',
+      'ice', 'iceData', 'ghost', 'ghostSec', 'ghostAt', 'replyTo', 'replyText', 'replyFrom', 'fwdFrom',
+      'e2e', 'encText', 'encIv', 'gkeys',
+      'enc_imgSrc', 'enc_imgSrc_iv', 'enc_audioSrc', 'enc_audioSrc_iv', 'enc_vidSrc', 'enc_vidSrc_iv',
+      'enc_fileData', 'enc_fileData_iv', 'enc_fileName', 'enc_fileName_iv', 'enc_caption', 'enc_caption_iv',
+      'enc_replyText', 'enc_replyText_iv', 'enc_replyFrom', 'enc_replyFrom_iv', 'enc_fwdFrom', 'enc_fwdFrom_iv',
+      'enc_iceData', 'enc_iceData_iv', 'enc_stickerSrc', 'enc_stickerSrc_iv'
+    ].forEach(k => { if (payload[k] != null) doc[k] = payload[k]; });
     const ref = await fsMod.addDoc(fsMod.collection(db, 'chats', chatId, 'messages'), doc);
     return ref.id;
   }
@@ -2441,10 +2550,13 @@ const NC = (() => {
     const ref = fsMod.doc(db, 'chats', chatId, 'messages', msgId);
     await fsMod.updateDoc(ref, { ['reactions.' + key]: add ? fsMod.arrayUnion(uid) : fsMod.arrayRemove(uid) });
   }
-  async function editMessage(chatId, msgId, text) {
+  async function editMessage(chatId, msgId, patch) {
     await init();
     const { fsMod } = fb;
-    await fsMod.updateDoc(fsMod.doc(db, 'chats', chatId, 'messages', msgId), { text, edited: true });
+    const allowed = new Set(['text', 'encText', 'encIv', 'gkeys']);
+    const clean = { edited: true };
+    Object.keys(patch || {}).forEach((key) => { if (allowed.has(key)) clean[key] = patch[key]; });
+    await fsMod.updateDoc(fsMod.doc(db, 'chats', chatId, 'messages', msgId), clean);
   }
   async function deleteMessage(chatId, msgId) {
     await init();
@@ -2486,10 +2598,39 @@ const NC = (() => {
     await init();
     const { fsMod } = fb;
     const ref = fsMod.doc(fsMod.collection(db, 'chats'));
-    const data = { members: memberUids, name: name, owner: meta.owner, gtype: meta.gtype || 'public', avatar: meta.avatar || '', memberNames: meta.memberNames || {}, admins: meta.admins || [meta.owner], updatedAt: fsMod.serverTimestamp(), lastText: (meta.isChannel ? 'канал создан' : 'банда собрана'), lastFrom: meta.owner };
+    const invited = [...new Set((memberUids || []).filter(uid => uid && uid !== meta.owner))];
+    const memberNames = { [meta.owner]: (meta.memberNames && meta.memberNames[meta.owner]) || 'Я' };
+    const pendingNames = {};
+    invited.forEach(uid => { if (meta.memberNames && meta.memberNames[uid]) pendingNames[uid] = meta.memberNames[uid]; });
+    const data = { members: [meta.owner], pending: meta.isChannel ? [] : invited, name: name, owner: meta.owner, gtype: meta.gtype || 'public', avatar: meta.avatar || '', memberNames, pendingNames, admins: meta.admins || [meta.owner], updatedAt: fsMod.serverTimestamp(), lastText: (meta.isChannel ? 'канал создан' : 'банда собрана'), lastFrom: meta.owner };
     if (meta.isChannel) data.isChannel = true; else data.isGroup = true;
     await fsMod.setDoc(ref, data);
     return ref.id;
+  }
+  async function acceptGroupInvite(chatId, uid, name) {
+    await init();
+    const { fsMod } = fb;
+    await fsMod.updateDoc(fsMod.doc(db, 'chats', chatId), {
+      members: fsMod.arrayUnion(uid), pending: fsMod.arrayRemove(uid),
+      ['memberNames.' + uid]: String(name || 'Участник').slice(0, 48),
+      ['pendingNames.' + uid]: fsMod.deleteField(),
+    });
+  }
+  async function declineGroupInvite(chatId, uid) {
+    await init();
+    const { fsMod } = fb;
+    await fsMod.updateDoc(fsMod.doc(db, 'chats', chatId), {
+      pending: fsMod.arrayRemove(uid), ['pendingNames.' + uid]: fsMod.deleteField(),
+    });
+  }
+  async function inviteGroupMembers(chatId, uids, names) {
+    await init();
+    const { fsMod } = fb;
+    const cleanUids = [...new Set((uids || []).filter(Boolean))];
+    if (!cleanUids.length) return;
+    const patch = { pending: fsMod.arrayUnion(...cleanUids) };
+    cleanUids.forEach(uid => { patch['pendingNames.' + uid] = String((names && names[uid]) || 'Участник').slice(0, 48); });
+    await fsMod.updateDoc(fsMod.doc(db, 'chats', chatId), patch);
   }
   async function updateChatMembers(chatId, memberUids, memberNames) {
     await init();
@@ -2545,7 +2686,11 @@ const NC = (() => {
   async function gcJoin(roomId, uid, data) {
     await init();
     const { fsMod } = fb;
-    await fsMod.setDoc(fsMod.doc(db, 'groupcalls', roomId), { active: true, kind: data.kind, startedBy: data.startedBy || uid, startedAt: Date.now(), groupId: roomId }, { merge: true });
+    const roomRef = fsMod.doc(db, 'groupcalls', roomId);
+    const room = await fsMod.getDoc(roomRef);
+    if (!room.exists()) {
+      await fsMod.setDoc(roomRef, { active: true, kind: data.kind, startedBy: uid, startedAt: Date.now(), groupId: roomId });
+    }
     await fsMod.setDoc(fsMod.doc(db, 'groupcalls', roomId, 'members', uid), { uid, name: data.name || '', ts: Date.now() });
   }
   async function gcLeave(roomId, uid) {
@@ -2564,7 +2709,8 @@ const NC = (() => {
   }
   async function gcSignal(roomId, pairId, patch) {
     await init();
-    await fb.fsMod.setDoc(fb.fsMod.doc(db, 'groupcalls', roomId, 'pairs', pairId), patch, { merge: true });
+    const participants = pairId.split('__').filter(Boolean);
+    await fb.fsMod.setDoc(fb.fsMod.doc(db, 'groupcalls', roomId, 'pairs', pairId), { ...patch, participants }, { merge: true });
   }
   function gcWatchSignal(roomId, pairId, cb) {
     let unsub = () => {};
@@ -2591,9 +2737,9 @@ const NC = (() => {
     return () => unsub();
   }
 
-  return { init, signUp, signIn, signOut, onAuthChange, getProfile, saveProfile,
-           findByHandle, searchUsers, resendVerification, addContact, watchContacts, watchChats, sendText, sendMessage, setReaction, editMessage, deleteMessage, resetPassword, watchMessages,
-           heartbeat, goOffline, setTyping, markRead, watchChatMeta, watchProfile, createGroup, updateChatMembers, updateChatMeta,
+  return { init, signUp, signIn, signOut, onAuthChange, getProfile, ensureProfile, saveProfile, removeLegacyPrivateFields, getPrivate, savePrivate, getIdToken,
+           findByHandle, searchUsers, resendVerification, addContact, watchContacts, watchChats, ensureDirectChat, sendText, sendMessage, setReaction, editMessage, deleteMessage, resetPassword, watchMessages,
+           heartbeat, goOffline, setTyping, markRead, watchChatMeta, watchProfile, createGroup, acceptGroupInvite, declineGroupInvite, inviteGroupMembers, updateChatMembers, updateChatMeta,
            callCreate, callUpdate, callWatch, callAddCandidate, callWatchCandidates, callWatchIncoming, callDelete,
            gcJoin, gcLeave, gcWatchMembers, gcWatchRoom, gcSignal, gcWatchSignal, gcAddCand, gcWatchCand,
            chatIdFor, handleFromEmail, normHandle };
@@ -2720,9 +2866,7 @@ class Component extends DCLogic {
     playerPlaying: false, playerCur: 0, playerDur: 0,
     playerMenu: false, videoQuality: 'auto',
     chatFont: 'M',
-    devices: [
-      { id: 1, name: 'Samsung S24 Ultra', sub: 'это устройство · сейчас', current: true },
-    ],
+    devices: [{ id: 1, name: 'Это устройство', sub: 'текущий локальный сеанс', current: true }],
     contacts: [
       { id: 'fav', name: 'ИЗБРАННОЕ', ini: '★', color: '#fcee0a', status: 'self', last: 'заметка: купить патроны у Вакако', time: '22:01', unread: 0 },
       { id: 'judy', name: 'ДЖУДИ', color: '#00f0ff', status: 'online', last: 'скинула тебе BD-файл', time: '21:45', unread: 0 },
@@ -2800,12 +2944,26 @@ class Component extends DCLogic {
       return { contacts: [c, ...s.contacts], threads: { ...s.threads, support: [hello] } };
     }, () => this.openChat('support'));
   };
-  _checkDeepLink = () => {
+  _handleAppUrl = (rawUrl) => {
     try {
-      const q = (typeof window !== 'undefined' && window.location && window.location.search) || '';
-      const m = q.match(/[?&]add=([^&]+)/);
-      if (!m) return;
-      let handle = decodeURIComponent(m[1]).replace(/@/g, '').slice(0, 24).trim();
+      const url = new URL(String(rawUrl || ''), 'https://nightcity.local');
+      if (url.protocol === 'nightcity:' && url.hostname === 'accept') {
+        const callId = url.searchParams.get('callId') || '';
+        if (!callId) return;
+        this._pendingAcceptCallId = callId;
+        const call = this.state.incomingCall;
+        if (call && call.id === callId) setTimeout(() => this.acceptIncoming(), 80);
+        return;
+      }
+      if (url.protocol === 'nightcity:' && url.hostname === 'decline') {
+        const callId = url.searchParams.get('callId') || '';
+        if (!callId) return;
+        this._pendingDeclineCallId = callId;
+        const call = this.state.incomingCall;
+        if (call && call.id === callId) setTimeout(() => this.declineIncoming(), 80);
+        return;
+      }
+      let handle = (url.searchParams.get('add') || '').replace(/@/g, '').slice(0, 24).trim();
       if (!handle) return;
       const id = 'dl_' + handle.toLowerCase();
       this.setState(s => {
@@ -2816,6 +2974,9 @@ class Component extends DCLogic {
       });
       clearTimeout(this._dlTO); this._dlTO = setTimeout(() => this.setState({ dlToast: null }), 3000);
     } catch (e) {}
+  };
+  _checkDeepLink = () => {
+    try { this._handleAppUrl(window.location.href); } catch (e) {}
   };
   _supportReply = (id) => {
     if (id !== 'support') return false;
@@ -2952,14 +3113,14 @@ class Component extends DCLogic {
     if (this.state.screen === 'chat' && (id !== this._lastActiveId || count > (this._lastMsgCount || 0))) { this.scrollBottom(); }
     this._lastActiveId = id; this._lastMsgCount = count; if (this.state.screen !== 'auth') this.persist(); }
   deleteAccount = () => {
-    if (typeof window !== 'undefined' && window.confirm && !window.confirm('Удалить аккаунт и все данные без возможности восстановления?')) return;
+    if (typeof window !== 'undefined' && window.confirm && !window.confirm('Очистить локальные данные на этом устройстве и выйти? Аккаунт Firebase останется активным.')) return;
     try { const email = localStorage.getItem('nc_session'); if (email) { const u = this.loadUsers(); delete u[email]; this.saveUsers(u); localStorage.removeItem('nc_data_' + email); } localStorage.removeItem('nc_session'); } catch (e) {}
-    this.setState({ screen: 'auth', authMode: 'login', authPass: '', authCode: '', codeSent: false, authError: null, authInfo: null, subKey: null });
+    this.logout();
   };
   componentWillUnmount() { clearInterval(this.recTimer); clearInterval(this.callTimer); clearInterval(this.clockTimer); clearTimeout(this.replyTO); clearTimeout(this.copyTO); clearTimeout(this._persistTO); if (!FIREBASE_ENABLED) this._persistRaw(); if (this._msgUnsub) this._msgUnsub(); if (this._contactsUnsub) this._contactsUnsub(); if (this._chatsUnsub) this._chatsUnsub(); }
 
   scrollBottom = () => { const el = this.threadRef.current; if (el && this.state.screen === 'chat') el.scrollTop = el.scrollHeight; };
-  now = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  now = (value = Date.now()) => { const d = new Date(value); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
   hexA = (h, a) => { const n = (h || '#00f0ff').replace('#', ''); const r = parseInt(n.slice(0, 2), 16), g = parseInt(n.slice(2, 4), 16), b = parseInt(n.slice(4, 6), 16); return `rgba(${r},${g},${b},${a})`; };
   _MEDIA_FIELDS = ['imgSrc', 'vidSrc', 'audioSrc', 'fileData', 'iceData', 'stickerSrc'];
   _dataStats = () => {
@@ -3125,7 +3286,7 @@ class Component extends DCLogic {
       let pub = localStorage.getItem('nc_e2e_pub_' + this._myUid);
       if (!priv || !pub) {
         // на новом устройстве: если есть резервная копия — не создавать новый ключ, предложить восстановление
-        try { const _pr = await NC.getProfile(this._myUid); if (_pr && _pr.e2eBackup) { this.setState({ e2eNeedRestore: true }); this._e2eOn = false; return; } } catch (e) {}
+        try { const _pr = await NC.getPrivate(this._myUid, 'e2e'); if (_pr && _pr.backup) { this.setState({ e2eNeedRestore: true }); this._e2eOn = false; return; } } catch (e) {}
         const kp = await _cr.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']);
         pub = this._b64(await _cr.exportKey('spki', kp.publicKey));
         priv = this._b64(await _cr.exportKey('pkcs8', kp.privateKey));
@@ -3171,11 +3332,11 @@ class Component extends DCLogic {
   _keyFromPassword = async (password, salt) => {
     const _cr = window.crypto.subtle;
     const base = await _cr.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
-    return _cr.deriveKey({ name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    return _cr.deriveKey({ name: 'PBKDF2', salt, iterations: 600000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
   };
   _backupKey = async (password) => {
     try {
-      if (!this._myUid || !password || password.length < 4) return false;
+      if (!this._myUid || !password || password.length < 12) return false;
       const priv = localStorage.getItem('nc_e2e_priv_' + this._myUid); const pub = localStorage.getItem('nc_e2e_pub_' + this._myUid);
       if (!priv) return false;
       const salt = window.crypto.getRandomValues(new Uint8Array(16));
@@ -3183,15 +3344,15 @@ class Component extends DCLogic {
       const wk = await this._keyFromPassword(password, salt);
       const enc = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, wk, new TextEncoder().encode(priv));
       const backup = { salt: this._b64(salt), iv: this._b64(iv), enc: this._b64(enc), pub: pub || '' };
-      await NC.saveProfile(this._myUid, { e2eBackup: JSON.stringify(backup) });
+      await NC.savePrivate(this._myUid, 'e2e', { backup: JSON.stringify(backup), updatedAt: Date.now() });
       return true;
     } catch (e) { return false; }
   };
   _restoreKey = async (password) => {
     try {
       if (!this._myUid || !password) return false;
-      const prof = await NC.getProfile(this._myUid); if (!prof || !prof.e2eBackup) return false;
-      const backup = JSON.parse(prof.e2eBackup);
+      const prof = await NC.getPrivate(this._myUid, 'e2e'); if (!prof || !prof.backup) return false;
+      const backup = JSON.parse(prof.backup);
       const wk = await this._keyFromPassword(password, this._fromB64(backup.salt));
       const dec = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv: this._fromB64(backup.iv) }, wk, this._fromB64(backup.enc));
       const priv = new TextDecoder().decode(dec);
@@ -3205,7 +3366,7 @@ class Component extends DCLogic {
   e2eBackupInput = (e) => this.setState({ e2eBackupPass: e.target.value });
   doBackupKey = async () => {
     const p = (this.state.e2eBackupPass || '').trim();
-    if (p.length < 4) { this._toast('Пароль минимум 4 символа'); return; }
+    if (p.length < 12) { this._toast('Пароль минимум 12 символов'); return; }
     this.setState({ e2eBusy: true });
     const ok = await this._backupKey(p);
     this.setState({ e2eBusy: false, e2eBackupPass: '' });
@@ -3268,11 +3429,6 @@ class Component extends DCLogic {
       const members = sc.members;
       const payload = { type: msg.type || 'text' };
       ['text', 'audioSrc', 'stickerSrc', 'fileName', 'duration', 'caption', 'ice', 'iceData', 'ghost', 'ghostSec', 'ghostAt', 'replyTo', 'replyText', 'replyFrom', 'fwdFrom'].forEach(k => { if (msg[k] != null) payload[k] = msg[k]; });
-      // E2E: шифруем текст в личных чатах, если у собеседника есть публичный ключ
-      if (!sc.isGroup && !sc.isChannel && this._e2eOn && payload.text && !payload.ice) {
-        const _peer = (members || []).find(u => u !== this._myUid);
-        if (_peer) { const _e = await this._encrypt(_peer, payload.text); if (_e) { payload.e2e = true; payload.encText = _e.enc; payload.encIv = _e.iv; payload.text = '🔒'; } }
-      }
       if (msg.imgSrc) { payload.imgSrc = await this._compressImg(msg.imgSrc, 1280, 0.7); }
       if (msg.type === 'file' && msg.fileData) {
         if ((msg.fileData || '').length > 720000) { this._toast('Файл больше 700 КБ — не отправлен'); return; }
@@ -3282,23 +3438,31 @@ class Component extends DCLogic {
         if ((msg.vidSrc || '').length > 720000) { this._toast('Видео слишком большое для передачи'); payload.type = 'text'; payload.text = '🎬 [видео не отправлено: слишком большое]'; delete payload.caption; }
         else payload.vidSrc = msg.vidSrc;
       }
-      // E2E: шифруем медиа (фото/голос/видео/файл) в личных чатах
-      if (!sc.isGroup && !sc.isChannel && this._e2eOn) {
-        const _peer2 = (members || []).find(u => u !== this._myUid);
-        if (_peer2) {
-          for (const _f of ['imgSrc', 'audioSrc', 'vidSrc', 'fileData']) {
-            if (payload[_f]) { const _em = await this._encrypt(_peer2, payload[_f]); if (_em) { payload['enc_' + _f] = _em.enc; payload['enc_' + _f + '_iv'] = _em.iv; payload[_f] = null; payload.e2e = true; } }
-          }
+      const _secureFields = ['text', 'imgSrc', 'audioSrc', 'vidSrc', 'fileData', 'fileName', 'caption', 'replyText', 'replyFrom', 'fwdFrom', 'iceData', 'stickerSrc'];
+      if (!sc.isChannel && !this._e2eOn) throw new Error('E2E_NOT_READY');
+      if (!sc.isGroup && !sc.isChannel) {
+        const _peer = (members || []).find(u => u !== this._myUid);
+        if (!_peer) throw new Error('E2E_PEER_MISSING');
+        for (const _f of _secureFields) {
+          if (payload[_f] == null || payload[_f] === '') continue;
+          const _enc = await this._encrypt(_peer, String(payload[_f]));
+          if (!_enc) throw new Error('E2E_KEY_MISSING');
+          if (_f === 'text') { payload.encText = _enc.enc; payload.encIv = _enc.iv; payload.text = '🔒'; }
+          else { payload['enc_' + _f] = _enc.enc; payload['enc_' + _f + '_iv'] = _enc.iv; delete payload[_f]; }
         }
+        payload.e2e = true;
       }
-      // E2E для банд: один ключ сообщения + конверт для каждого участника
-      if (sc.isGroup && !sc.isChannel && this._e2eOn) {
+      if (sc.isGroup && !sc.isChannel) {
         const _gk = await this._groupKeys(members);
-        if (_gk && Object.keys(_gk.keys).length) {
-          if (payload.text && !payload.ice) { const _e = await this._encWithKey(_gk.msgKey, payload.text); payload.encText = _e.enc; payload.encIv = _e.iv; payload.text = '🔒'; }
-          for (const _f of ['imgSrc', 'audioSrc', 'vidSrc', 'fileData']) { if (payload[_f]) { const _e = await this._encWithKey(_gk.msgKey, payload[_f]); payload['enc_' + _f] = _e.enc; payload['enc_' + _f + '_iv'] = _e.iv; payload[_f] = null; } }
-          payload.e2e = true; payload.gkeys = _gk.keys;
+        const _memberCount = new Set((members || []).filter(Boolean)).size;
+        if (!_gk || Object.keys(_gk.keys).length !== _memberCount) throw new Error('E2E_GROUP_KEY_MISSING');
+        for (const _f of _secureFields) {
+          if (payload[_f] == null || payload[_f] === '') continue;
+          const _enc = await this._encWithKey(_gk.msgKey, String(payload[_f]));
+          if (_f === 'text') { payload.encText = _enc.enc; payload.encIv = _enc.iv; payload.text = '🔒'; }
+          else { payload['enc_' + _f] = _enc.enc; payload['enc_' + _f + '_iv'] = _enc.iv; delete payload[_f]; }
         }
+        payload.e2e = true; payload.gkeys = _gk.keys;
       }
       const total = JSON.stringify(payload).length;
       if (total > 980000) { this._toast('Слишком большой файл (лимит ~1 МБ)'); return; }
@@ -3308,7 +3472,10 @@ class Component extends DCLogic {
         const delay = Math.max(0, msg.ghostAt - Date.now()) + 400;
         setTimeout(() => { try { NC.deleteMessage(chatId, msgId).catch(() => {}); } catch (e) {} }, delay);
       }
-    } catch (e) { this._toast('Не удалось отправить'); }
+    } catch (e) {
+      const code = String(e && e.message || e);
+      this._toast(code.startsWith('E2E_') ? 'Отправка отменена: ключ шифрования недоступен' : 'Не удалось отправить');
+    }
   };
   pushMsg = (partial, andReply) => {
     const id = this.state.activeId;
@@ -3345,6 +3512,22 @@ class Component extends DCLogic {
   onChatSearchInput = (e) => this.setState({ inChatQuery: e.target.value });
   _saveDraftNow = () => { try { if (this.state.screen === 'chat' && this.state.activeId && this._composer) { const t = this.readComposer(); this.setState(s => { const d = { ...(s.drafts || {}) }; if (t) d[s.activeId] = t; else delete d[s.activeId]; return { drafts: d }; }); } } catch (e) {} };
   openChat = (id) => {
+    const invited = this.state.contacts.find(contact => contact.id === id && contact.pendingInvite);
+    if (invited && FIREBASE_ENABLED && this._myUid) {
+      this.askChoice(
+        'Вступить в банду «' + invited.name + '»?',
+        async () => {
+          try { await NC.acceptGroupInvite(invited.chatId, this._myUid, this.state.myName || 'Участник'); this.setState(s => ({ contacts: s.contacts.map(c => c.id === id ? { ...c, pendingInvite: false, last: 'банда' } : c) })); this._toast('Приглашение принято ✓'); setTimeout(() => this.openChat(id), 300); }
+          catch (e) { this._toast('Не удалось принять приглашение'); }
+        },
+        async () => {
+          try { await NC.declineGroupInvite(invited.chatId, this._myUid); this.setState(s => ({ contacts: s.contacts.filter(c => c.id !== id) })); this._toast('Приглашение отклонено'); }
+          catch (e) { this._toast('Не удалось отклонить приглашение'); }
+        },
+        'ВСТУПИТЬ', 'ОТКЛОНИТЬ', '#3aff8f',
+      );
+      return;
+    }
     const _prevId = this.state.activeId, _prevScreen = this.state.screen;
     let _curDraft = ''; try { _curDraft = (this._composer ? this.readComposer() : ''); } catch (e) {}
     this.setState(s => {
@@ -3482,11 +3665,10 @@ class Component extends DCLogic {
       const curUids = g.memberUids || sc.members || [];
       const addUids = picked.filter(c => c.uid && !curUids.includes(c.uid)).map(c => c.uid);
       if (!addUids.length) { this.setState({ mMembers: [] }); return; }
-      const newUids = curUids.concat(addUids);
       const memberNames = {}; picked.forEach(c => { if (c.uid) memberNames[c.uid] = c.name; });
       this.setState({ mMembers: [] });
-      try { NC.updateChatMembers(sc.chatId, newUids, memberNames).catch(() => {}); } catch (e) {}
-      this._toast('Добавлено в банду: ' + names.length);
+      try { NC.inviteGroupMembers(sc.chatId, addUids, memberNames).catch(() => {}); } catch (e) {}
+      this._toast('Приглашений отправлено: ' + addUids.length);
       return;
     }
     this.setState(st => ({ mMembers: [], contacts: st.contacts.map(c => c.id === id ? { ...c, members: [...(c.members || []), ...names.filter(n => !(c.members || []).includes(n))] } : c) }), () => names.forEach(n => this.sysMsg(id, n + ' присоединяется к банде')));
@@ -3516,8 +3698,9 @@ class Component extends DCLogic {
     });
   };
   askConfirm = (text, onYes) => this.setState({ confirmBox: { text, onYes } });
+  askChoice = (text, onYes, onNo, yesLabel, noLabel, color) => this.setState({ confirmBox: { text, onYes, onNo, yesLabel, noLabel, color } });
   confirmYes = () => { const c = this.state.confirmBox; this.setState({ confirmBox: null }); if (c && c.onYes) c.onYes(); };
-  confirmNo = () => this.setState({ confirmBox: null });
+  confirmNo = () => { const c = this.state.confirmBox; this.setState({ confirmBox: null }); if (c && c.onNo) c.onNo(); };
   openViewer = (kind, src, e) => { try { if (e && e.stopPropagation) e.stopPropagation(); } catch (x) {} if (src) this.setState({ viewer: { kind, src } }); };
   closeViewer = () => { try { if (this._pv) this._pv.pause(); } catch (e) {} this.setState({ viewer: null, playerPlaying: false, playerCur: 0, playerDur: 0 }); };
   wireVid = (el) => {
@@ -3909,11 +4092,7 @@ class Component extends DCLogic {
     if (this._devInit) return; this._devInit = true;
     this.setState(s => {
       const devs = (s.devices || []).map(d => d.current ? { ...d, name: this._deviceInfo(), sub: 'это устройство · активно сейчас' } : d);
-      if (devs.length < 2) {
-        devs.push({ id: 901, name: 'Кибердека Militech', sub: 'Уотсон · 2 дня назад', current: false });
-        devs.push({ id: 902, name: 'Терминал Afterlife', sub: 'Хейвуд · неделю назад', current: false });
-      }
-      return { devices: devs };
+      return { devices: devs.filter(d => d.current) };
     });
   };
   openDevModal = (d) => this.setState({ devModal: d.id, devName: d.name });
@@ -3943,9 +4122,10 @@ class Component extends DCLogic {
 
   enterBackend = async (user) => {
     try {
-      let prof = await NC.getProfile(user.uid);
-      if (!prof) prof = { uid: user.uid, email: user.email || '', handle: NC.handleFromEmail(user.email || ('u' + user.uid)), name: '', status: '' };
+      let prof = await NC.ensureProfile(user);
+      try { const own = await NC.getPrivate(user.uid, 'account'); if (own) prof = { ...prof, phone: own.phone || '' }; } catch (e) {}
       this._myUid = user.uid;
+      try { await NC.removeLegacyPrivateFields(user.uid); } catch (e) {}
       try { const _em = user.email || ''; if (_em) { localStorage.setItem('nc_session', _em); const _us = this.loadUsers(); _us[_em] = Object.assign({}, _us[_em], { name: (prof.name || (_us[_em] && _us[_em].name) || ''), handle: prof.handle || '', uid: user.uid }); this.saveUsers(_us); } } catch (e) {}
       this._bkContacts = {};
       this._startHeartbeat();
@@ -3953,7 +4133,7 @@ class Component extends DCLogic {
       this._registerPush();
       this._ensureKeys();
       let _savedAliases = {}; try { _savedAliases = (this.loadData(user.email) || {}).aliases || {}; } catch (e) {}
-      this.setState({ screen: 'list', myUid: user.uid, myName: prof.name || (prof.handle || '@me').slice(1).toUpperCase(), myHandle: prof.handle || '@me', myStatus: prof.status || this.state.myStatus, myAvatar: prof.avatar || this.state.myAvatar || null, contacts: [], threads: {}, aliases: _savedAliases, authError: null, authInfo: null, authPass: '', codeSent: false });
+      this.setState({ screen: 'list', myUid: user.uid, myName: prof.name || (prof.handle || '@me').slice(1).toUpperCase(), myHandle: prof.handle || '@me', myEmail: user.email || '', myStatus: prof.status || this.state.myStatus, myPhone: prof.phone || '', myAvatar: prof.avatar || this.state.myAvatar || null, contacts: [], threads: {}, aliases: _savedAliases, authError: null, authInfo: null, authPass: '', codeSent: false });
       if (!prof.avatar && this.state.myAvatar) { this._syncAvatar(this.state.myAvatar); }
       if (this._contactsUnsub) this._contactsUnsub();
       if (this._chatsUnsub) this._chatsUnsub();
@@ -3961,7 +4141,7 @@ class Component extends DCLogic {
       let ci = 0;
       const touch = (uid) => { if (!this._bkContacts[uid]) { this._bkContacts[uid] = { uid, color: pal[ci % pal.length] }; ci++; } return this._bkContacts[uid]; };
       this._contactsUnsub = NC.watchContacts(user.uid, (list) => { list.forEach(c => { const e = touch(c.uid); Object.assign(e, { handle: c.handle, name: c.name }); }); this.rebuildBackendContacts(); });
-      this._chatsUnsub = NC.watchChats(user.uid, (chats) => { this._bkGroups = {}; chats.forEach(ch => this._maybeNotifyChat(ch, user.uid)); if (!this._notifReady) { this._notifReady = true; } chats.forEach(ch => { const _un = (ch.unread && ch.unread[user.uid]) || 0; if (ch.isGroup || ch.isChannel) { this._bkGroups[ch.id] = { id: ch.id, chatId: ch.id, name: ch.name || 'ГРУППА', isGroup: !!ch.isGroup, isChannel: !!ch.isChannel, memberUids: ch.members || [], memberNames: ch.memberNames || {}, gtype: ch.gtype, avatarImg: ch.avatar, last: ch.lastText || '', owner: ch.owner, admins: ch.admins || [], unread: _un }; } else { const other = (ch.members || []).find(u => u !== user.uid); if (other) { const e = touch(other); e.last = ch.lastText || 'диалог'; e.unread = _un; this._profFetch = this._profFetch || {}; if (!this._profFetch[other]) { this._profFetch[other] = 1; NC.getProfile(other).then(p => { if (p) { const ee = touch(other); if (!ee.name || ee.name === '—') ee.name = p.name || p.handle || ee.name; ee.handle = p.handle || ee.handle; ee.color = ee.color || '#00f0ff'; if (p.avatar) ee.avatarImg = p.avatar; this.rebuildBackendContacts(); } }).catch(() => {}); } } } }); this.rebuildBackendContacts(); });
+      this._chatsUnsub = NC.watchChats(user.uid, (chats) => { this._bkGroups = {}; chats.forEach(ch => { if (!(ch.pending || []).includes(user.uid)) this._maybeNotifyChat(ch, user.uid); }); if (!this._notifReady) { this._notifReady = true; } chats.forEach(ch => { const _un = (ch.unread && ch.unread[user.uid]) || 0; if (ch.isGroup || ch.isChannel) { const pendingInvite = (ch.pending || []).includes(user.uid) && !(ch.members || []).includes(user.uid); this._bkGroups[ch.id] = { id: ch.id, chatId: ch.id, name: ch.name || 'ГРУППА', isGroup: !!ch.isGroup, isChannel: !!ch.isChannel, pendingInvite, memberUids: ch.members || [], memberNames: ch.memberNames || {}, gtype: ch.gtype, avatarImg: ch.avatar, last: pendingInvite ? '⚡ приглашение в банду' : (ch.lastText || ''), owner: ch.owner, admins: ch.admins || [], unread: pendingInvite ? 0 : _un }; } else { const other = (ch.members || []).find(u => u !== user.uid); if (other) { const e = touch(other); e.last = ch.lastText || 'диалог'; e.unread = _un; this._profFetch = this._profFetch || {}; if (!this._profFetch[other]) { this._profFetch[other] = 1; NC.getProfile(other).then(p => { if (p) { const ee = touch(other); if (!ee.name || ee.name === '—') ee.name = p.name || p.handle || ee.name; ee.handle = p.handle || ee.handle; ee.color = ee.color || '#00f0ff'; if (p.avatar) ee.avatarImg = p.avatar; this.rebuildBackendContacts(); } }).catch(() => {}); } } } }); this.rebuildBackendContacts(); });
     } catch (e) { this.setState({ authError: 'ОШИБКА ПОДКЛЮЧЕНИЯ' }); }
   };
 
@@ -3994,7 +4174,7 @@ class Component extends DCLogic {
     const arr = Object.values(this._bkContacts || {}).map(c => { const real = (c.name || c.handle || '—').toUpperCase(); return { id: c.uid, uid: c.uid, name: al[c.uid] || real, realName: real, alias: al[c.uid] || null, handle: c.handle, color: c.color || '#00f0ff', avatarImg: c.avatarImg || null, status: 'online', last: c.last || 'нажми, чтобы открыть чат', time: c.time || '', unread: c.unread || 0 }; });
     const groups = Object.values(this._bkGroups || {}).map(g => ({
       id: g.id, chatId: g.chatId, name: al[g.id] || (g.name || 'ГРУППА').toUpperCase(), realName: (g.name || 'ГРУППА').toUpperCase(), alias: al[g.id] || null,
-      isGroup: g.isGroup, isChannel: g.isChannel, memberUids: g.memberUids, members: Object.values(g.memberNames || {}), memberNames: g.memberNames || {},
+      isGroup: g.isGroup, isChannel: g.isChannel, pendingInvite: !!g.pendingInvite, memberUids: g.memberUids, members: Object.values(g.memberNames || {}), memberNames: g.memberNames || {},
       gtype: g.gtype, avatarImg: g.avatarImg, admins: g.admins, owner: g.owner,
       color: g.isChannel ? '#fcee0a' : '#9b8cff', status: g.isChannel ? 'channel' : 'group',
       last: g.last || (g.isChannel ? 'канал' : 'банда'), time: '', unread: g.unread || 0, subs: (g.memberUids || []).length
@@ -4100,19 +4280,35 @@ class Component extends DCLogic {
     }
     this._msgUnsub = NC.watchMessages(chatId, (msgs) => {
       const pr = this._peerRead || 0;
-      const mapped = msgs.map(m => {
+      const mapped = msgs.filter(m => !m.ghostAt || m.ghostAt > Date.now()).map(m => {
         let reactions = {}, mine = [];
         if (m.reactions) { for (const k in m.reactions) { const arr = m.reactions[k] || []; if (arr.length) { reactions[k] = arr.length; if (arr.indexOf(this._myUid) > -1) mine.push(k); } } }
         const ts = (m.ts && m.ts.toMillis) ? m.ts.toMillis() : Date.now();
         const isMe = m.from === this._myUid;
-        return { id: m.id, from: isMe ? 'me' : 'them', fromUid: m.from, fwdFrom: m.fwdFrom || null, type: m.type || 'text', _e2e: !!m.e2e, text: m.e2e ? ((this._e2ePlain && this._e2ePlain[m.id] != null) ? this._e2ePlain[m.id] : '🔒 \u2026') : (m.text || ''), imgSrc: (m.e2e && this._e2eMedia && this._e2eMedia[m.id]) ? (this._e2eMedia[m.id].imgSrc || null) : (m.imgSrc || null), audioSrc: (m.e2e && this._e2eMedia && this._e2eMedia[m.id]) ? (this._e2eMedia[m.id].audioSrc || null) : (m.audioSrc || null), vidSrc: (m.e2e && this._e2eMedia && this._e2eMedia[m.id]) ? (this._e2eMedia[m.id].vidSrc || null) : (m.vidSrc || null), stickerSrc: m.stickerSrc || null, fileData: (m.e2e && this._e2eMedia && this._e2eMedia[m.id]) ? (this._e2eMedia[m.id].fileData || null) : (m.fileData || null), fileName: m.fileName || null, duration: m.duration || null, caption: m.caption || null, ice: !!m.ice, iceData: m.iceData || null, _iceOpen: !!(this._iceOpened && this._iceOpened[m.id]), _iceText: (this._iceOpened && this._iceOpened[m.id]) || null, ghost: !!m.ghost, ghostSec: m.ghostSec || null, ghostAt: m.ghostAt || null, _dissolving: !!(m.ghost && m.ghostAt && (m.ghostAt - Date.now() < 800)), replyTo: m.replyTo || null, replyText: m.replyText || null, replyFrom: m.replyFrom || null, edited: !!m.edited, time: this.now(), _ts: ts, status: isMe ? (ts <= pr ? 'read' : 'sent') : 'read', reactions, mine };
+        const cached = (m.e2e && this._e2eMedia && this._e2eMedia[m.id]) || {};
+        return {
+          id: m.id, from: isMe ? 'me' : 'them', fromUid: m.from, type: m.type || 'text', _e2e: !!m.e2e,
+          text: m.e2e ? ((this._e2ePlain && this._e2ePlain[m.id] != null) ? this._e2ePlain[m.id] : '🔒 \u2026') : (m.text || ''),
+          imgSrc: cached.imgSrc ?? m.imgSrc ?? null, audioSrc: cached.audioSrc ?? m.audioSrc ?? null,
+          vidSrc: cached.vidSrc ?? m.vidSrc ?? null, stickerSrc: cached.stickerSrc ?? m.stickerSrc ?? null,
+          fileData: cached.fileData ?? m.fileData ?? null, fileName: cached.fileName ?? m.fileName ?? null,
+          caption: cached.caption ?? m.caption ?? null, ice: !!m.ice, iceData: cached.iceData ?? m.iceData ?? null,
+          replyTo: m.replyTo || null, replyText: cached.replyText ?? m.replyText ?? null,
+          replyFrom: cached.replyFrom ?? m.replyFrom ?? null, fwdFrom: cached.fwdFrom ?? m.fwdFrom ?? null,
+          duration: m.duration || null, _iceOpen: !!(this._iceOpened && this._iceOpened[m.id]),
+          _iceText: (this._iceOpened && this._iceOpened[m.id]) || null, ghost: !!m.ghost,
+          ghostSec: m.ghostSec || null, ghostAt: m.ghostAt || null,
+          _dissolving: !!(m.ghost && m.ghostAt && (m.ghostAt - Date.now() < 800)), edited: !!m.edited,
+          time: this.now(ts), _ts: ts, status: isMe ? (ts <= pr ? 'read' : 'sent') : 'read', reactions, mine
+        };
       });
       this.setState(st => ({ threads: { ...st.threads, [uid]: mapped } }));
       // E2E: расшифровать новые зашифрованные сообщения (текст + медиа), 1-на-1 и банды
       {
         this._e2ePlain = this._e2ePlain || {}; this._e2eMedia = this._e2eMedia || {};
-        const _hasEncMedia = (m) => !!(m.enc_imgSrc || m.enc_audioSrc || m.enc_vidSrc || m.enc_fileData);
-        const _pend = msgs.filter(m => m.e2e && ((m.encText && this._e2ePlain[m.id] == null) || (_hasEncMedia(m) && this._e2eMedia[m.id] == null)));
+        const _encryptedFields = ['imgSrc', 'audioSrc', 'vidSrc', 'fileData', 'fileName', 'caption', 'replyText', 'replyFrom', 'fwdFrom', 'iceData', 'stickerSrc'];
+        const _hasEncFields = (m) => _encryptedFields.some(_f => !!m['enc_' + _f]);
+        const _pend = msgs.filter(m => m.e2e && ((m.encText && this._e2ePlain[m.id] == null) || (_hasEncFields(m) && this._e2eMedia[m.id] == null)));
         if (_pend.length) {
           Promise.all(_pend.map(async (m) => {
             try {
@@ -4121,11 +4317,11 @@ class Component extends DCLogic {
               else { _dec = (e, iv) => this._decrypt(uid, e, iv); }
               if (m.encText && this._e2ePlain[m.id] == null) { this._e2ePlain[m.id] = await _dec(m.encText, m.encIv); }
               const _md = {};
-              for (const _f of ['imgSrc', 'audioSrc', 'vidSrc', 'fileData']) { if (m['enc_' + _f]) { try { _md[_f] = await _dec(m['enc_' + _f], m['enc_' + _f + '_iv']); } catch (e) {} } }
+              for (const _f of _encryptedFields) { if (m['enc_' + _f]) { _md[_f] = await _dec(m['enc_' + _f], m['enc_' + _f + '_iv']); } }
               if (Object.keys(_md).length) this._e2eMedia[m.id] = _md;
             } catch (e) { if (this._e2ePlain[m.id] == null) this._e2ePlain[m.id] = '🔒 [\u043D\u0435 \u0440\u0430\u0441\u0448\u0438\u0444\u0440\u043E\u0432\u0430\u043D\u043E]'; }
           })).then(() => {
-            this.setState(st => ({ threads: { ...st.threads, [uid]: (st.threads[uid] || []).map(mm => { if (!mm._e2e) return mm; const _m = this._e2eMedia[mm.id] || {}; return { ...mm, text: (this._e2ePlain[mm.id] != null ? this._e2ePlain[mm.id] : mm.text), imgSrc: _m.imgSrc || mm.imgSrc, audioSrc: _m.audioSrc || mm.audioSrc, vidSrc: _m.vidSrc || mm.vidSrc, fileData: _m.fileData || mm.fileData }; }) } }));
+            this.setState(st => ({ threads: { ...st.threads, [uid]: (st.threads[uid] || []).map(mm => { if (!mm._e2e) return mm; const _m = this._e2eMedia[mm.id] || {}; return { ...mm, ..._m, text: (this._e2ePlain[mm.id] != null ? this._e2ePlain[mm.id] : mm.text) }; }) } }));
           });
         }
       }
@@ -4164,8 +4360,7 @@ class Component extends DCLogic {
     this.setState({ draft: '' });
     try { this.clearComposer(); } catch (e) {}
     this._stopTyping(uid);
-    const sc = this._serverChatOf(uid);
-    if (sc) NC.sendText(sc.chatId, sc.members, this._myUid, text).catch(() => {});
+    this.pushMsg({ type: 'text', text }, true);
   };
 
   _loadAliases = () => { try { return JSON.parse(localStorage.getItem('nc_aliases') || '{}'); } catch (e) { return {}; } };
@@ -4421,6 +4616,21 @@ class Component extends DCLogic {
   onEditEmail = (e) => this.setState({ myEmail: (e.target.value || '').slice(0, 60) });
   onEditPhone = (e) => this.setState({ myPhone: (e.target.value || '').replace(/[^0-9+()\- ]/g, '').slice(0, 20) });
   onEditName2 = (e) => this.setState({ myName: (e.target.value || '').slice(0, 24) });
+  saveAccountSettings = async () => {
+    const name = (this.state.myName || '').trim().slice(0, 48);
+    const phone = (this.state.myPhone || '').trim().slice(0, 24);
+    if (!name) { this._toast('Введите имя'); return; }
+    try {
+      if (FIREBASE_ENABLED && this._myUid) {
+        await Promise.all([
+          NC.saveProfile(this._myUid, { name }),
+          NC.savePrivate(this._myUid, 'account', { phone, updatedAt: Date.now() }),
+        ]);
+      }
+      this.setState({ myName: name, myPhone: phone });
+      this._toast('Настройки аккаунта сохранены ✓');
+    } catch (e) { this._toast('Не удалось сохранить аккаунт'); }
+  };
   toggleFaq = (idx) => this.setState(s => ({ faqOpen: s.faqOpen === idx ? null : idx }));
   openExc = (key) => this.setState({ excModal: key });
   closeExc = () => this.setState({ excModal: null });
@@ -4458,7 +4668,10 @@ class Component extends DCLogic {
     const status = (this.state.editStatus || '').trim().slice(0, 120) || this.state.myStatus;
     const phone = (this.state.editPhone || '').trim().slice(0, 24);
     try { const email = localStorage.getItem('nc_session'); if (email) { const u = this.loadUsers(); if (u[email]) { u[email].name = name; this.saveUsers(u); } } } catch (e) {}
-    if (FIREBASE_ENABLED && this._myUid) { try { NC.saveProfile(this._myUid, { name, status, phone }).catch(() => {}); } catch (e) {} }
+    if (FIREBASE_ENABLED && this._myUid) {
+      try { NC.saveProfile(this._myUid, { name, status }).catch(() => {}); } catch (e) {}
+      try { NC.savePrivate(this._myUid, 'account', { phone, updatedAt: Date.now() }).catch(() => {}); } catch (e) {}
+    }
     this.setState({ myName: name, myStatus: status, myPhone: phone, screen: (this._subFrom === 'profile' ? 'profile' : 'settings'), subKey: null });
     this._toast && this._toast('Профиль сохранён ✓');
   };
@@ -4547,26 +4760,18 @@ class Component extends DCLogic {
   };
 
   // --- контакты телефонной книги ---
-  demoContacts = [
-    { name: 'Джеки Уэллс', phone: '+7 900 111 22 33' }, { name: 'Мисти Ольшевски', phone: '+7 900 222 33 44' },
-    { name: 'Виктор Вектор', phone: '+7 900 333 44 55' }, { name: 'Ти-Баг', phone: '+7 900 444 55 66' },
-    { name: 'Дэкстер ДеШон', phone: '+7 900 555 66 77' }, { name: 'Клэр Рассел', phone: '+7 900 666 77 88' },
-    { name: 'Ривер Уорд', phone: '+7 900 777 88 99' }, { name: 'Керри Евродин', phone: '+7 900 888 99 00' },
-    { name: 'Горо Тэкэмура', phone: '+7 900 121 21 21' },
-  ];
   syncContacts = async () => {
     this.setState({ syncing: true });
     const ok = await this.requestPerm('contacts');
     if (!ok) { this.setState({ syncing: false }); return; }
+    if (!this.hasCap()) { this.setState({ syncing: false }); this._toast('Контакты доступны в установленном APK'); return; }
     let list = [];
     try {
-      if (this.hasCap()) {
-        const res = await this.plugin('Contacts').getContacts({ projection: { name: true, phones: true } });
-        list = (res.contacts || []).map(c => ({ name: (c.name && (c.name.display || c.name.given)) || 'Без имени', phone: (c.phones && c.phones[0] && c.phones[0].number) || '' }));
-      } else { await new Promise(r => setTimeout(r, 800)); list = this.demoContacts.slice(); }
-    } catch (e) { list = this.demoContacts.slice(); }
+      const res = await this.plugin('Contacts').getContacts({ projection: { name: true, phones: true } });
+      list = (res.contacts || []).map(c => ({ name: (c.name && (c.name.display || c.name.given)) || 'Без имени', phone: (c.phones && c.phones[0] && c.phones[0].number) || '' }));
+    } catch (e) { this.setState({ syncing: false }); this._toast('Не удалось прочитать контакты'); return; }
     const pal = ['var(--nc-accent)', '#00f0ff', '#ff003c', '#9b8cff', '#3aff8f'];
-    const mapped = list.map((c, i) => ({ ...c, id: 'dc' + i, inApp: (c.name.charCodeAt(0) + i) % 5 < 2, color: pal[i % pal.length] }));
+    const mapped = list.map((c, i) => ({ ...c, id: 'dc' + i, inApp: false, color: pal[i % pal.length] }));
     this.setState({ deviceContacts: mapped, contactsSynced: true, syncing: false });
   };
   addContactChat = (c) => {
@@ -4583,14 +4788,14 @@ class Component extends DCLogic {
     const ok = await this.requestPerm('camera'); if (!ok) return;
     if (this.hasCap()) {
       try { const photo = await this.plugin('Camera').getPhoto({ quality: 80, resultType: 'dataUrl', source: 'CAMERA' }); if (photo && photo.dataUrl) this.pushMsg({ type: 'image', imgSrc: photo.dataUrl }, true); } catch (e) {}
-    } else { this.pushMsg({ type: 'image', imgSrc: null }, true); }
+    } else { this._toast('Камера доступна в установленном APK'); }
   };
   shareLoc = async () => {
     this.setState({ attachOpen: false });
     const ok = await this.requestPerm('geo'); if (!ok) return;
     if (this.hasCap()) {
-      try { const pos = await this.plugin('Geolocation').getCurrentPosition(); const { latitude, longitude } = pos.coords; this.pushMsg({ type: 'text', text: '📍 моя локация: ' + latitude.toFixed(4) + ', ' + longitude.toFixed(4) }); } catch (e) { this.pushMsg({ type: 'text', text: '📍 локация недоступна' }); }
-    } else { this.pushMsg({ type: 'text', text: '📍 локация: Уотсон, Найт-Сити (демо)' }); }
+      try { const pos = await this.plugin('Geolocation').getCurrentPosition(); const { latitude, longitude } = pos.coords; this.pushMsg({ type: 'text', text: '📍 моя локация: ' + latitude.toFixed(4) + ', ' + longitude.toFixed(4) }); } catch (e) { this._toast('Локация недоступна'); }
+    } else { this._toast('Геолокация доступна в установленном APK'); }
   };
 
   canWriteHere = () => {
@@ -4773,11 +4978,37 @@ class Component extends DCLogic {
       this.setState(st => ({ threads: { ...st.threads, [id]: (st.threads[id] || []).filter(m => String(m.id) !== _mk) }, selPosts: st.selPosts.map(String).filter(x => x !== _mk) }));
     });
   };
-  saveEdit = () => {
+  saveEdit = async () => {
     const id = this.state.activeId, mid = this.state.editing, t = this.readComposer().trim();
     if (!t) return;
+    if (this._isServerChat(id)) {
+      try {
+        const sc = this._serverChatOf(id);
+        if (!sc) throw new Error('CHAT_MISSING');
+        let patch;
+        if (sc.isChannel) patch = { text: t };
+        else if (sc.isGroup) {
+          const groupKey = await this._groupKeys(sc.members || []);
+          const memberCount = new Set((sc.members || []).filter(Boolean)).size;
+          if (!groupKey || Object.keys(groupKey.keys).length !== memberCount) throw new Error('E2E_GROUP_KEY_MISSING');
+          const encrypted = await this._encWithKey(groupKey.msgKey, t);
+          patch = { encText: encrypted.enc, encIv: encrypted.iv, gkeys: groupKey.keys };
+        } else {
+          const peer = (sc.members || []).find(uid => uid !== this._myUid);
+          const encrypted = peer && await this._encrypt(peer, t);
+          if (!encrypted) throw new Error('E2E_KEY_MISSING');
+          patch = { encText: encrypted.enc, encIv: encrypted.iv };
+        }
+        const previousPlain = this._e2ePlain && this._e2ePlain[mid];
+        if (!sc.isChannel && this._e2ePlain) delete this._e2ePlain[mid];
+        try { await NC.editMessage(sc.chatId, mid, patch); }
+        catch (error) { if (!sc.isChannel && previousPlain != null) this._e2ePlain[mid] = previousPlain; throw error; }
+        this.clearComposer();
+        this.setState({ editing: null });
+      } catch (e) { this._toast('Не удалось безопасно отредактировать сообщение'); }
+      return;
+    }
     this.clearComposer();
-    if (this._isServerChat(id)) { try { const _sc = this._serverChatOf(id); if (_sc) NC.editMessage(_sc.chatId, mid, t).catch(() => {}); } catch (e) {} this.setState({ editing: null }); return; }
     this.setState(st => ({ editing: null, threads: { ...st.threads, [id]: (st.threads[id] || []).map(m => m.id === mid ? { ...m, text: t, edited: true } : m) } }));
   };
   _FACTIONS = { neon: { a: '#fcee0a', rgb: '252,238,10', name: 'NEON 2077' }, arasaka: { a: '#ff003c', rgb: '255,0,60', name: 'ARASAKA' }, militech: { a: '#3d8bff', rgb: '61,139,255', name: 'MILITECH' }, maelstrom: { a: '#7cff00', rgb: '124,255,0', name: 'MAELSTROM' }, netwatch: { a: '#9fd0ff', rgb: '159,208,255', name: 'NETWATCH' } };
@@ -4973,6 +5204,8 @@ class Component extends DCLogic {
     this._appStateWired = true;
     if (this._appActive === undefined) this._appActive = true;
     try { App.addListener('appStateChange', (st) => { this._appActive = !!st.isActive; }); } catch (e) {}
+    try { App.addListener('appUrlOpen', (event) => this._handleAppUrl(event && event.url)); } catch (e) {}
+    try { if (App.getLaunchUrl) App.getLaunchUrl().then((event) => { if (event && event.url) this._handleAppUrl(event.url); }).catch(() => {}); } catch (e) {}
     try { const LN = this.plugin('LocalNotifications'); if (LN && LN.requestPermissions) LN.requestPermissions().catch(() => {}); } catch (e) {}
   };
   _maybeNotifyChat = (ch, myUid) => {
@@ -5065,8 +5298,10 @@ class Component extends DCLogic {
       stream.getTracks().forEach(t => pc.addTrack(t, stream));
       pc.onicecandidate = (e) => { if (e.candidate) NC.callAddCandidate(callId, 'callerCandidates', e.candidate.toJSON()); };
       const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
-      await NC.callCreate(callId, { from: this._myUid, to: uid, fromName: this.state.myName || 'Абонент', kind: kind, offer: { type: offer.type, sdp: offer.sdp } });
-      this._sendCallPush(uid, kind);
+      const chatId = NC.chatIdFor(this._myUid, uid);
+      await NC.ensureDirectChat(chatId, [this._myUid, uid]);
+      await NC.callCreate(callId, { from: this._myUid, to: uid, chatId, fromName: this.state.myName || 'Абонент', kind: kind, offer: { type: offer.type, sdp: offer.sdp } });
+      await this._sendCallPush(uid, kind, callId, chatId);
       this._callUnsub = NC.callWatch(callId, (data) => {
         if (!data) return;
         if (data.answer && this._pc && !this._pc.currentRemoteDescription) { try { this._pc.setRemoteDescription(new RTCSessionDescription(data.answer)); } catch (e) {} }
@@ -5116,24 +5351,22 @@ class Component extends DCLogic {
   };
   declineCallRTC = () => { const call = this.state.incomingCall; if (call) { try { NC.callUpdate(call.id, { status: 'declined' }).catch(() => {}); setTimeout(() => { try { NC.callDelete(call.id).catch(() => {}); } catch (e) {} }, 1200); } catch (e) {} } this.setState({ incomingCall: null }); };
   _pushUrl = 'https://nightcity-push.konovalova-2017.workers.dev/';
-  _sendCallPush = async (uid, kind) => {
+  _sendCallPush = async (uid, kind, callId, chatId) => {
     try {
-      const prof = await NC.getProfile(uid);
-      const token = prof && prof.fcmToken;
-      if (!token) return;
-      fetch(this._pushUrl, {
+      const idToken = await NC.getIdToken();
+      const response = await fetch(this._pushUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          token: token,
-          title: (this.state.myName || 'Абонент'),
-          callBody: kind === 'video' ? 'Входящий видеозвонок' : 'Входящий звонок',
+          idToken,
+          toUid: uid,
+          chatId,
+          callId,
           callType: kind,
-          fromUid: this._myUid,
-          fromName: this.state.myName || 'Абонент'
         })
-      }).catch(() => {});
-    } catch (e) {}
+      });
+      if (!response.ok) throw new Error('Push rejected: ' + response.status);
+    } catch (e) { this._toast('Звонок создан, но push не доставлен'); }
   };
   _registerPush = async () => {
     try {
@@ -5143,7 +5376,7 @@ class Component extends DCLogic {
         this._pushInit = true;
         PN.addListener('registration', (token) => {
           this._fcmToken = token && token.value;
-          try { if (this._myUid && this._fcmToken) NC.saveProfile(this._myUid, { fcmToken: this._fcmToken }); } catch (e) {}
+          try { if (this._myUid && this._fcmToken) NC.savePrivate(this._myUid, 'push', { fcmToken: this._fcmToken, updatedAt: Date.now() }); } catch (e) {}
         });
         PN.addListener('registrationError', () => {});
         PN.addListener('pushNotificationReceived', () => { try { this._startCallListener(); } catch (e) {} });
@@ -5173,7 +5406,17 @@ class Component extends DCLogic {
       if (this._callId === call.id) return;
       const _who = call.groupCall ? (call.groupName || 'Банда') : (call.fromName || 'Абонент');
       this._localNotify(_who, call.kind === 'video' ? 'Входящий видеозвонок' : 'Входящий звонок');
-      this.setState({ incomingCall: call });
+      this.setState({ incomingCall: call }, () => {
+        if (this._pendingDeclineCallId === call.id) {
+          this._pendingDeclineCallId = null;
+          setTimeout(() => this.declineIncoming(), 80);
+          return;
+        }
+        if (this._pendingAcceptCallId === call.id) {
+          this._pendingAcceptCallId = null;
+          setTimeout(() => this.acceptIncoming(), 80);
+        }
+      });
     });
   };
   _gcPairId = (a, b) => [a, b].sort().join('__');
@@ -5205,15 +5448,22 @@ class Component extends DCLogic {
     if (!ok) return;
     // уведомить остальных участников (входящий групповой звонок)
     const others = (sc.members || []).filter(u => u !== this._myUid);
-    others.forEach(mu => { try { NC.callCreate('gc_' + roomId + '_' + mu, { from: this._myUid, to: mu, fromName: this.state.myName || 'Абонент', kind: kind, groupCall: true, roomId: roomId, groupName: gname }).catch(() => {}); } catch (e) {} });
+    others.forEach(mu => {
+      try {
+        const callId = 'gc_' + roomId + '_' + mu;
+        NC.callCreate(callId, { from: this._myUid, to: mu, chatId: roomId, fromName: this.state.myName || 'Абонент', kind: kind, groupCall: true, roomId: roomId, groupName: gname })
+          .then(() => this._sendCallPush(mu, kind, callId, roomId)).catch(() => {});
+      } catch (e) {}
+    });
   };
-  _gcConnectTo = (roomId, otherUid, otherName) => {
+  _gcConnectTo = async (roomId, otherUid, otherName) => {
     if (this._gcPeers[otherUid] || otherUid === this._myUid) return;
     const pairId = this._gcPairId(this._myUid, otherUid);
     const amA = this._myUid < otherUid;
     const pc = new RTCPeerConnection(this._rtcConfig);
     const entry = { pc: pc, stream: null, name: otherName || '', uid: otherUid };
     this._gcPeers[otherUid] = entry;
+    try { await NC.gcSignal(roomId, pairId, {}); } catch (e) { delete this._gcPeers[otherUid]; return; }
     try { if (this._callStream) this._callStream.getTracks().forEach(t => pc.addTrack(t, this._callStream)); } catch (e) {}
     pc.ontrack = (e) => { entry.stream = (e.streams && e.streams[0]) || entry.stream; this._gcRefreshRemotes(); };
     const mySide = amA ? 'aCand' : 'bCand';
@@ -5541,7 +5791,7 @@ class Component extends DCLogic {
     const settingsGroups = [
       { title: '▸ АККАУНТ', color: '#00f0ff', rows: [
         { label: 'Аккаунт', sub: 'email, никнейм, удаление', icon: '◈', color: '#00f0ff', key: 'account' },
-        { label: 'Приватность и безопасность', sub: 'чёрный список, 2FA, шифрование', icon: '⚿', color: '#00f0ff', key: 'privacy' },
+        { label: 'Приватность и безопасность', sub: 'чёрный список, блокировка, шифрование', icon: '⚿', color: '#00f0ff', key: 'privacy' },
         { label: 'Разрешения приложения', sub: 'контакты, камера, GPS, файлы…', icon: '⚑', color: '#00f0ff', key: 'perms' },
         { label: 'Устройства', sub: (s.devices.length) + ' подключено', icon: '⌁', color: '#00f0ff', key: 'devices' },
       ] },
@@ -5554,7 +5804,7 @@ class Component extends DCLogic {
       { title: '▸ ПОДДЕРЖКА', color: '#9b8cff', rows: [
         { label: 'Пригласить друзей', sub: 'поделись хэндлом', icon: '◆', color: '#9b8cff', key: 'invite' },
         { label: 'Помощь и FAQ', sub: 'поддержка NETWATCH', icon: 'ⓘ', color: '#9b8cff', key: 'help' },
-        { label: 'О приложении', sub: 'сборка 2.077.101', icon: '⚙', color: '#8a8a96', key: 'about' },
+        { label: 'О приложении', sub: 'сборка 2.077.202', icon: '⚙', color: '#8a8a96', key: 'about' },
       ] },
     ].map(g => ({ ...g, rows: g.rows.map(r => ({ ...r, open: () => this.openSub(r.key) })) }));
 
@@ -5566,12 +5816,12 @@ class Component extends DCLogic {
     const subDefs = {
       account: { title: 'АККАУНТ', rows: [
         { kind: 'input', label: 'Имя', ph: 'твоё имя', val: s.myName, on: this.onEditName2 },
-        { kind: 'input', label: 'Никнейм', ph: '@ник', val: s.myHandle, on: this.onEditHandle },
-        { kind: 'input', label: 'Email', ph: 'you@mail.ru', val: s.myEmail, on: this.onEditEmail },
+        { kind: 'info', label: 'Никнейм', sub: 'закреплён за аккаунтом', value: s.myHandle },
+        { kind: 'info', label: 'Email входа', sub: 'изменяется через Firebase Authentication', value: s.myEmail },
         { kind: 'input', label: 'Телефон', ph: '+7 900 000-00-00', val: s.myPhone, on: this.onEditPhone },
-        { kind: 'info', label: 'Изменения', sub: 'сохраняются автоматически', value: '✓' },
+        { kind: 'action', label: '▸ СОХРАНИТЬ', act: this.saveAccountSettings },
         { kind: 'action', label: '▸ ВЫЙТИ ИЗ АККАУНТА', act: this.logout },
-        { kind: 'action', label: '✕ УДАЛИТЬ АККАУНТ', danger: true, act: this.deleteAccount },
+        { kind: 'action', label: '✕ ОЧИСТИТЬ ДАННЫЕ НА УСТРОЙСТВЕ', danger: true, act: this.deleteAccount },
       ] },
       perms: { title: 'РАЗРЕШЕНИЯ', rows: [
         { kind: 'perm', label: 'Контакты', sub: 'синхронизация телефонной книги', k: 'contacts', col: '#00f0ff' },
@@ -5595,7 +5845,7 @@ class Component extends DCLogic {
         this._privRow('privForward', 'Пересылка моих сообщений', s),
         { kind: 'head', label: '// БЕЗОПАСНОСТЬ' },
         { kind: 'toggle', label: 'Пароль', sub: 'PIN или отпечаток при входе', k: 'password', col: 'var(--nc-accent)' },
-        { kind: 'toggle', label: 'Двухфакторная аутентификация', sub: 'PIN + отпечаток вместе', k: 'twofactor', col: '#ff003c' },
+        { kind: 'toggle', label: 'Двухэтапная блокировка', sub: 'локальный PIN + отпечаток', k: 'twofactor', col: '#ff003c' },
         { kind: 'nav', label: 'Чёрный список', sub: 'заблокированные', value: s.blocked.length + '', to: 'blocklist' },
         { kind: 'info', label: 'Шифрование', sub: 'сквозное, милспек', value: 'MILSPEC-6' },
       ] },
@@ -5672,7 +5922,7 @@ class Component extends DCLogic {
       help: { title: 'ПОМОЩЬ И FAQ', rows: [
         { kind: 'head', label: '// ЧАСТЫЕ ВОПРОСЫ' },
         this._faq(0, 'Как поставить пароль на приложение?', 'Настройки → Приватность → «Пароль». Выбери способ: PIN-код или отпечаток пальца. PIN всегда остаётся запасным способом входа.'),
-        this._faq(1, 'Что такое двухфакторная аутентификация?', 'Вход в два шага: сначала PIN, потом отпечаток. Включается в Приватности, но сперва включи «Пароль». Работает в установленном приложении с настроенным отпечатком.'),
+        this._faq(1, 'Что такое двухэтапная блокировка?', 'Это локальная защита приложения: сначала PIN, затем отпечаток. Она не заменяет двухфакторную защиту Firebase-аккаунта и работает на этом устройстве.'),
         this._faq(2, 'Кто видит мой онлайн и кто может мне писать?', 'Приватность → блок «Кто может». Для каждого пункта: ВСЕ / КОНТАКТЫ / НИКТО. Тапни «Исключения», чтобы разрешить или запретить конкретным людям.'),
         this._faq(3, 'Как сменить обои чата или поставить своё фото?', 'Оформление чатов → «Фон». Вариант СВОЙ откроет выбор фото или GIF из телефона. МАТРИЦА — анимированный падающий код.'),
         this._faq(4, 'Как поставить свою мелодию?', 'Уведомления и звуки → выбери «СВОЯ» в сигнале сообщения или рингтоне — откроется выбор аудиофайла (до 3 МБ).'),
@@ -5859,6 +6109,9 @@ class Component extends DCLogic {
       qRowLow: 'display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;color:' + (s.videoQuality === 'low' ? 'var(--nc-accent)' : '#c8c8d0'),
       confirmOpen: !!s.confirmBox,
       confirmText: (s.confirmBox && s.confirmBox.text) || '',
+      confirmYesLabel: (s.confirmBox && s.confirmBox.yesLabel) || 'УДАЛИТЬ',
+      confirmNoLabel: (s.confirmBox && s.confirmBox.noLabel) || 'ОТМЕНА',
+      confirmColor: (s.confirmBox && s.confirmBox.color) || '#ff003c',
       confirmYes: this.confirmYes, confirmNo: this.confirmNo,
       commentDraft: s.commentDraft, onCommentDraft: this.onCommentDraft, onCommentKey: this.onCommentKey,
       sendComment: this.sendComment, closeComments: this.closeComments,
