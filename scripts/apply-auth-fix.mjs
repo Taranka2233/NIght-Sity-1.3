@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const file = new URL('../index.html', import.meta.url);
 let html = await readFile(file, 'utf8');
 
-html = html.replaceAll('2.077.202', '2.077.208').replaceAll('2.077.203', '2.077.208').replaceAll('2.077.204', '2.077.208').replaceAll('2.077.205', '2.077.208').replaceAll('2.077.206', '2.077.208').replaceAll('2.077.207', '2.077.208');
+html = html.replaceAll('2.077.202', '2.077.209').replaceAll('2.077.203', '2.077.209').replaceAll('2.077.204', '2.077.209').replaceAll('2.077.205', '2.077.209').replaceAll('2.077.206', '2.077.209').replaceAll('2.077.207', '2.077.209').replaceAll('2.077.208', '2.077.209');
 
 if (!html.includes('<script src="./firebase-bundle.js"></script>')) {
   const configStart = html.indexOf('<script>window.FIREBASE_CONFIG');
@@ -280,7 +280,7 @@ if (!html.includes('pickChatWallpaper = () =>') && !html.includes("_applyWall = 
   html = html.replace(oldApplyWall, newApplyWall);
 }
 
-if (!html.includes('const maxEdge = 1280, maxPixels = 1600000;')) {
+if (!html.includes('const maxEdge = 1280, maxPixels = 1600000;') && !html.includes('pickChatWallpaper = () =>')) {
   const oldResize = `                const maxW = 1280; let w = im.width || 1280, h = im.height || 1280;
                 if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
                 const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
@@ -450,6 +450,88 @@ if (!html.includes('chatWalls: {},')) {
         { kind: 'choice', label: 'Фон', opts: [['dark', 'ТЬМА'], ['grid', 'СЕТКА'], ['red', 'БАГРОВЫЙ'], ['matrix', 'МАТРИЦА'], ['synth', 'СИНТ'], ['circuit', 'СХЕМА'], ['custom', 'СВОЙ']], cur: s.chatWall, set: (v) => v === 'custom' ? this.pickWallpaper() : this.setState(st => ({ chatWall: v, contacts: st.contacts.map(c => c.wall ? { ...c, wall: null } : c) }), this.persist) },`, `      chats: { title: 'ВИД СООБЩЕНИЙ', rows: [`);
   html = html.replace(`this._faq(3, 'Как сменить обои чата или поставить своё фото?', 'Оформление чатов → «Фон». Вариант СВОЙ откроет выбор фото или GIF из телефона. МАТРИЦА — анимированный падающий код.'),`, `this._faq(3, 'Как сменить обои чата или поставить своё фото?', 'Открой нужный чат → три точки вверху → «Выбрать изображение для этого чата». Фон сохраняется отдельно для каждого диалога, группы или канала.'),`);
   html = html.replace(`this._faq(6, 'Как сменить иконку приложения?', 'Оформление чатов → «Иконка приложения». Выбери из 10 вариантов и нажми «Сохранить». Работает в установленном APK.'),`, `this._faq(6, 'Как сменить иконку приложения?', 'Настройки → «Вид сообщений» → «Иконка приложения». Выбери из 10 вариантов и нажми «Сохранить». Работает в установленном APK.'),`);
+}
+
+if (!html.includes('_wallDbOpen = () =>')) {
+  html = html.replace('    chatWalls: {},', "    chatWalls: {},\n    chatWallMedia: {},\n    chatWallLoading: '',");
+  html = html.replace(`  componentDidUpdate() {
+    this._matrixEnsure();
+    this._sizeCustomWall();
+    const id = this.state.activeId;
+    const count = (this.state.threads[id] || []).length;
+    if (this.state.screen === 'chat' && (id !== this._lastActiveId || count > (this._lastMsgCount || 0))) { this.scrollBottom(); }
+    this._lastActiveId = id; this._lastMsgCount = count; if (this.state.screen !== 'auth') this.persist(); }`, `  componentDidUpdate(prevProps, prevState) {
+    this._matrixEnsure(); this._sizeCustomWall();
+    const id = this.state.activeId, count = (this.state.threads[id] || []).length;
+    if (this.state.screen === 'chat' && (id !== this._lastActiveId || count > (this._lastMsgCount || 0))) this.scrollBottom();
+    this._lastActiveId = id; this._lastMsgCount = count;
+    const keys = ['threads','contacts','myStatus','prefs','blocked','chatWalls','chatFont','appIcon','variant','myEmail','myPhone','myRank','myAvatar','myName','myHandle','aliases'];
+    if (this.state.screen !== 'auth' && keys.some(k => prevState[k] !== this.state[k])) this.persist();
+  }`);
+  const anchor = `  dataKey = () => { try { const e = localStorage.getItem('nc_session'); return e ? 'nc_data_' + e : null; } catch (e) { return null; } };`;
+  const helpers = String.raw`
+  _wallStorageKey = (chatId) => { try { return String(localStorage.getItem('nc_session') || this.state.myEmail || 'guest') + '::' + String(chatId); } catch (e) { return 'guest::' + String(chatId); } };
+  _wallDbOpen = () => { if (this._wallDbPromise) return this._wallDbPromise; this._wallDbPromise = new Promise((resolve, reject) => { try { if (!window.indexedDB) throw new Error('INDEXEDDB_UNAVAILABLE'); const req = window.indexedDB.open('night-city-wallpapers', 1); req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains('images')) req.result.createObjectStore('images'); }; req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error || new Error('INDEXEDDB_OPEN_FAILED')); } catch (e) { reject(e); } }); return this._wallDbPromise; };
+  _wallDbPut = async (chatId, image) => { const db = await this._wallDbOpen(), key = this._wallStorageKey(chatId); await new Promise((resolve, reject) => { const tx = db.transaction('images', 'readwrite'); tx.objectStore('images').put({ image, updatedAt: Date.now() }, key); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error || new Error('INDEXEDDB_WRITE_FAILED')); }); };
+  _wallDbGet = async (chatId) => { const db = await this._wallDbOpen(), key = this._wallStorageKey(chatId); return new Promise((resolve, reject) => { const req = db.transaction('images', 'readonly').objectStore('images').get(key); req.onsuccess = () => resolve((req.result && req.result.image) || ''); req.onerror = () => reject(req.error || new Error('INDEXEDDB_READ_FAILED')); }); };
+  _wallDbDelete = async (chatId) => { const db = await this._wallDbOpen(), key = this._wallStorageKey(chatId); await new Promise((resolve, reject) => { const tx = db.transaction('images', 'readwrite'); tx.objectStore('images').delete(key); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error || new Error('INDEXEDDB_DELETE_FAILED')); }); };
+  _wallMeta = (walls) => Object.fromEntries(Object.entries(walls || {}).map(([id, wall]) => [id, { type: (wall && wall.type) || 'dark' }]));
+  _wallLegacyMedia = (walls) => Object.fromEntries(Object.entries(walls || {}).filter(([, wall]) => wall && typeof wall.image === 'string' && wall.image).map(([id, wall]) => [id, wall.image]));
+  _migrateLegacyWalls = (walls) => { Object.entries(this._wallLegacyMedia(walls)).forEach(([id, image]) => this._wallDbPut(id, image).catch(() => {})); };
+  _loadChatWallpaper = async (chatId) => { const meta = (this.state.chatWalls || {})[chatId]; if (!meta || meta.type !== 'custom' || (this.state.chatWallMedia || {})[chatId]) return; try { const image = await this._wallDbGet(chatId); if (image) this.setState(s => ({ chatWallMedia: { ...(s.chatWallMedia || {}), [chatId]: image } })); } catch (e) { this._toast('Не удалось загрузить фон этого чата'); } };
+`;
+  if (!html.includes(anchor)) throw new Error('Cannot add IndexedDB wallpaper helpers');
+  html = html.replace(anchor, anchor + helpers);
+  const oldPersist = `  _persistRaw = () => { try { const k = this.dataKey(); if (!k) return; const s = this.state; localStorage.setItem(k, JSON.stringify({ threads: s.threads, contacts: s.contacts, myStatus: s.myStatus, prefs: s.prefs, blocked: s.blocked, chatWalls: s.chatWalls, chatFont: s.chatFont, appIcon: s.appIcon, variant: s.variant, myEmail: s.myEmail, myPhone: s.myPhone, myRank: s.myRank, myAvatar: s.myAvatar, myName: s.myName, myHandle: s.myHandle, aliases: s.aliases })); } catch (e) {} };
+  persist = () => { clearTimeout(this._persistTO); this._persistTO = setTimeout(this._persistRaw, 1200); };`;
+  const newPersist = `  _persistRaw = () => { try { const k = this.dataKey(); if (!k) return true; const s = this.state; localStorage.setItem(k, JSON.stringify({ threads: s.threads, contacts: s.contacts, myStatus: s.myStatus, prefs: s.prefs, blocked: s.blocked, chatWalls: this._wallMeta(s.chatWalls), chatFont: s.chatFont, appIcon: s.appIcon, variant: s.variant, myEmail: s.myEmail, myPhone: s.myPhone, myRank: s.myRank, myAvatar: s.myAvatar, myName: s.myName, myHandle: s.myHandle, aliases: s.aliases })); return true; } catch (e) { console.error('Local data persistence failed', e); return false; } };
+  persist = () => { clearTimeout(this._persistTO); this._persistTO = setTimeout(this._persistRaw, 1200); };`;
+  if (!html.includes(oldPersist)) throw new Error('Cannot separate wallpaper metadata');
+  html = html.replace(oldPersist, newPersist);
+  html = html.replaceAll('chatWalls: d.chatWalls || {}, chatFont:', 'chatWalls: this._wallMeta(d.chatWalls), chatWallMedia: this._wallLegacyMedia(d.chatWalls), chatFont:');
+  html = html.replaceAll('const d = this.loadData(email) || {};', 'const d = this.loadData(email) || {}; this._migrateLegacyWalls(d.chatWalls);');
+  html = html.replace('let _localUi = {}; try { _localUi = this.loadData(user.email) || {}; } catch (e) {}', 'let _localUi = {}; try { _localUi = this.loadData(user.email) || {}; } catch (e) {} this._migrateLegacyWalls(_localUi.chatWalls);');
+  html = html.replace('chatWalls: _localUi.chatWalls || {}, chatFont:', 'chatWalls: this._wallMeta(_localUi.chatWalls), chatWallMedia: this._wallLegacyMedia(_localUi.chatWalls), chatFont:');
+  const start = html.indexOf('  _setChatWallpaperImage = (chatId, img) => {');
+  const end = start >= 0 ? html.indexOf('  _deviceInfo = () => {', start) : -1;
+  if (start < 0 || end < 0) throw new Error('Cannot harden wallpaper picker');
+  const picker = String.raw`  _wallDataBytes = (data) => { const i = String(data || '').indexOf(','); return Math.max(0, Math.floor((String(data || '').length - i - 1) * 0.75)); };
+  _setChatWallpaperImage = async (chatId, img) => { if (!chatId || !img) return; try { await this._wallDbPut(chatId, img); this.setState(st => ({ chatMenu: false, chatWalls: { ...(st.chatWalls || {}), [chatId]: { type: 'custom' } }, chatWallMedia: { ...(st.chatWallMedia || {}), [chatId]: img } }), () => { this.persist(); this._toast('Фон установлен для этого чата ✓'); }); } catch (e) { this._toast('Не удалось сохранить фон · освободи память'); } };
+  pickChatWallpaper = () => { const chatId = this.state.activeId; if (!chatId) return; try { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.style.position = 'fixed'; inp.style.left = '-9999px'; inp.onchange = () => { const f = inp.files && inp.files[0]; try { if (inp.parentNode) inp.parentNode.removeChild(inp); } catch (e) {} if (!f) return; const isGif = /gif/i.test(f.type || ''); if (isGif && f.size > 1024 * 1024) { this._toast('GIF для фона — не больше 1 МБ'); return; } if (!isGif && f.size > 8 * 1024 * 1024) { this._toast('Изображение для фона — не больше 8 МБ'); return; } const r = new FileReader(); r.onload = () => { const data = r.result; if (isGif) { this._setChatWallpaperImage(chatId, data); return; } try { const im = new Image(); im.onload = () => { try { const maxEdge = 1280, maxPixels = 1200000, srcW = im.width || maxEdge, srcH = im.height || maxEdge; const scale = Math.min(1, maxEdge / srcW, maxEdge / srcH, Math.sqrt(maxPixels / (srcW * srcH))); const w = Math.max(1, Math.round(srcW * scale)), h = Math.max(1, Math.round(srcH * scale)), cv = document.createElement('canvas'); cv.width = w; cv.height = h; const ctx = cv.getContext('2d'); if (!ctx) throw new Error('CANVAS_UNAVAILABLE'); ctx.drawImage(im, 0, 0, w, h); const packed = cv.toDataURL(/png/i.test(f.type || '') ? 'image/webp' : 'image/jpeg', .76); if (this._wallDataBytes(packed) > 1200 * 1024) { this._toast('Не удалось достаточно сжать изображение'); return; } this._setChatWallpaperImage(chatId, packed); } catch (e) { this._toast('Не удалось обработать изображение'); } }; im.onerror = () => this._toast('Этот файл нельзя использовать как изображение'); im.src = data; } catch (e) { this._toast('Не удалось обработать изображение'); } }; r.onerror = () => this._toast('Не удалось прочитать файл'); r.readAsDataURL(f); }; document.body.appendChild(inp); inp.click(); } catch (e) {} };
+`;
+  html = html.slice(0, start) + picker + html.slice(end);
+  html = html.replace(`  setChatWall = (type) => {
+    const chatId = this.state.activeId;
+    if (!chatId) return;
+    this.setState(
+      s => ({ chatWalls: { ...(s.chatWalls || {}), [chatId]: { type } } }),
+      () => { try { this.persist(); } catch (e) {} }
+    );
+  };`, `  setChatWall = async (type) => { const chatId = this.state.activeId; if (!chatId) return; try { await this._wallDbDelete(chatId); } catch (e) {} this.setState(s => ({ chatWalls: { ...(s.chatWalls || {}), [chatId]: { type } }, chatWallMedia: Object.fromEntries(Object.entries(s.chatWallMedia || {}).filter(([id]) => id !== String(chatId))) }), () => this.persist()); };`);
+  html = html.replace(`    try { if (this._pendingComposer) this.setComposer(this._pendingComposer); else this.clearComposer(); } catch (e) {}
+    if (FIREBASE_ENABLED) this.openChatBackend(id);`, `    try { if (this._pendingComposer) this.setComposer(this._pendingComposer); else this.clearComposer(); } catch (e) {}
+    this._loadChatWallpaper(id);
+    if (FIREBASE_ENABLED) this.openChatBackend(id);`);
+  html = html.replace(`const _wallImgCss = String(_wallEntry.image || '').replace(/["\\\\\\n\\r]/g, '');`, `const _wallImgCss = String(((s.chatWallMedia || {})[active && active.id] || _wallEntry.image || '')).replace(/["\\\\\\n\\r]/g, '');`);
+  const oldChatActions = `            <sc-if value="{{ chatSettingsShow }}">
+            <button onclick="{{ toggleChatSearch }}" style="background:none;border:1px solid #23232e;color:#c8c8d0;width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px;margin-right:6px"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"></circle><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>
+            <button onclick="{{ openChatMenu }}" style="background:none;border:1px solid #23232e;color:#c8c8d0;width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="3" r="1.4" fill="currentColor"></circle><circle cx="8" cy="8" r="1.4" fill="currentColor"></circle><circle cx="8" cy="13" r="1.4" fill="currentColor"></circle></svg>
+            </button>
+            </sc-if>`;
+  const newChatActions = `            <sc-if value="{{ chatSearchShow }}">
+            <button onclick="{{ toggleChatSearch }}" style="background:none;border:1px solid #23232e;color:#c8c8d0;width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px;margin-right:6px"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"></circle><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>
+            </sc-if>
+            <sc-if value="{{ chatSettingsShow }}">
+            <button onclick="{{ openChatMenu }}" style="background:none;border:1px solid #23232e;color:#c8c8d0;width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="3" r="1.4" fill="currentColor"></circle><circle cx="8" cy="8" r="1.4" fill="currentColor"></circle><circle cx="8" cy="13" r="1.4" fill="currentColor"></circle></svg>
+            </button>
+            </sc-if>`;
+  if (!html.includes(oldChatActions)) throw new Error('Cannot make the chat menu available in groups and channels');
+  html = html.replace(oldChatActions, newChatActions);
+  html = html.replace(`      chatSettingsShow: !!active,`, `      chatSearchShow: !!(active && !active.isChannel && !active.isGroup),
+      chatSettingsShow: !!active,`);
+  html = html.replace(`  componentWillUnmount() { clearInterval(this.recTimer); clearInterval(this.callTimer); clearInterval(this.clockTimer); clearTimeout(this.replyTO); clearTimeout(this.copyTO); clearTimeout(this._persistTO); if (!FIREBASE_ENABLED) this._persistRaw(); if (this._msgUnsub) this._msgUnsub(); if (this._contactsUnsub) this._contactsUnsub(); if (this._chatsUnsub) this._chatsUnsub(); }`, `  componentWillUnmount() { clearInterval(this.recTimer); clearInterval(this.callTimer); clearInterval(this.clockTimer); clearTimeout(this.replyTO); clearTimeout(this.copyTO); clearTimeout(this._persistTO); this._persistRaw(); if (this._msgUnsub) this._msgUnsub(); if (this._contactsUnsub) this._contactsUnsub(); if (this._chatsUnsub) this._chatsUnsub(); }`);
 }
 
 await writeFile(file, html);
