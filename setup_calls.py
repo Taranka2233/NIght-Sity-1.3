@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
-"""Внедряет полноэкранный входящий звонок (как в Telegram) в Capacitor Android-проект.
-Запускается в CI после `npx cap add android`. Идемпотентен.
-Создаёт:
-  - CallMessagingService.java  (ловит FCM data-пуш, показывает звонок даже когда приложение убито)
-  - IncomingCallActivity.java  (экран звонка поверх блокировки: принять/отклонить)
-Патчит AndroidManifest.xml (сервис, activity, разрешения).
-"""
-import os, re, glob, sys
+"""Configure one FCM service and a lock-screen incoming-call Activity."""
 
-APP = 'android/app/src/main'
+from pathlib import Path
+import glob
+import re
+import shutil
+import sys
 
-# 1) найти package и путь к java-пакету по MainActivity
-pkg_path = None
-for p in glob.glob('android/app/src/main/java/**/MainActivity.java', recursive=True):
-    pkg_path = os.path.dirname(p); break
-if not pkg_path:
-    print('MainActivity.java не найден — пропускаю native-звонок'); sys.exit(0)
-PKG = pkg_path.split('java/')[1].replace('/', '.')
-print('package:', PKG)
 
-# 2) CallMessagingService.java
-service_java = '''package %(pkg)s;
+MAIN = Path("android/app/src/main")
+main_activities = glob.glob("android/app/src/main/java/**/MainActivity.java", recursive=True)
+if not main_activities:
+    print("MainActivity.java not found", file=sys.stderr)
+    sys.exit(1)
+
+java_dir = Path(main_activities[0]).parent
+package = str(java_dir).split("java/", 1)[1].replace("/", ".")
+
+google_services = Path("google-services.json")
+if google_services.exists():
+    shutil.copyfile(google_services, Path("android/app/google-services.json"))
+
+service_java = f'''package {package};
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -29,63 +30,73 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import com.google.firebase.messaging.RemoteMessage;
 import java.util.Map;
 
-public class CallMessagingService extends com.google.firebase.messaging.FirebaseMessagingService {
+public class CallMessagingService extends com.capacitorjs.plugins.pushnotifications.MessagingService {{
     @Override
-    public void onMessageReceived(RemoteMessage remoteMessage) {
+    public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {{
+        super.onMessageReceived(remoteMessage);
         Map<String, String> data = remoteMessage.getData();
-        if (data != null && "call".equals(data.get("type"))) {
-            showIncomingCall(data);
-        }
-    }
+        if (data != null && "call".equals(data.get("type"))) showIncomingCall(data);
+    }}
 
-    private void showIncomingCall(Map<String, String> data) {
-        String fromName = data.get("fromName"); if (fromName == null) fromName = "Абонент";
-        String callType = data.get("callType"); if (callType == null) callType = "audio";
-        String fromUid = data.get("fromUid"); if (fromUid == null) fromUid = "";
-        String callId = data.get("callId"); if (callId == null) callId = "";
+    private void showIncomingCall(Map<String, String> data) {{
+        String callId = safe(data.get("callId"));
+        if (callId.isEmpty()) return;
+        String chatId = safe(data.get("chatId"));
+        String fromName = safe(data.get("fromName"));
+        String fromUid = safe(data.get("fromUid"));
+        String callType = "video".equals(data.get("callType")) ? "video" : "audio";
+        if (fromName.isEmpty()) fromName = "Абонент";
 
-        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel ch = new NotificationChannel("calls", "Звонки", NotificationManager.IMPORTANCE_HIGH);
-            ch.setDescription("Входящие звонки");
-            ch.enableVibration(true);
-            ch.setVibrationPattern(new long[]{0, 500, 400, 500, 400, 500});
-            ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-            nm.createNotificationChannel(ch);
-        }
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager == null) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {{
+            NotificationChannel channel = new NotificationChannel("calls", "Звонки", NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("Входящие звонки");
+            channel.enableVibration(true);
+            channel.setVibrationPattern(new long[]{{0, 500, 350, 500, 350, 500}});
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            manager.createNotificationChannel(channel);
+        }}
 
-        Intent full = new Intent(this, IncomingCallActivity.class);
-        full.putExtra("fromName", fromName);
-        full.putExtra("callType", callType);
-        full.putExtra("fromUid", fromUid);
-        full.putExtra("callId", callId);
-        full.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        int piFlags = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= 23) piFlags |= PendingIntent.FLAG_IMMUTABLE;
-        PendingIntent fullPi = PendingIntent.getActivity(this, 100, full, piFlags);
+        int notificationId = 1000 + (callId.hashCode() & 0x3fffffff) % 1_000_000;
+        Intent fullIntent = new Intent(this, IncomingCallActivity.class)
+                .putExtra("callId", callId)
+                .putExtra("chatId", chatId)
+                .putExtra("fromName", fromName)
+                .putExtra("fromUid", fromUid)
+                .putExtra("callType", callType)
+                .putExtra("notificationId", notificationId)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent fullScreen = PendingIntent.getActivity(this, notificationId, fullIntent, flags);
 
-        String text = "Входящий " + ("video".equals(callType) ? "видеозвонок" : "звонок");
-        NotificationCompat.Builder b = new NotificationCompat.Builder(this, "calls")
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "calls")
                 .setSmallIcon(android.R.drawable.sym_call_incoming)
                 .setContentTitle(fromName)
-                .setContentText(text)
+                .setContentText("video".equals(callType) ? "Входящий видеозвонок" : "Входящий звонок")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_CALL)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
-                .setAutoCancel(true)
-                .setFullScreenIntent(fullPi, true);
+                .setAutoCancel(false)
+                .setContentIntent(fullScreen);
 
-        nm.notify(42, b.build());
-    }
-}
-''' % {'pkg': PKG}
+        boolean fullScreenAllowed = true;
+        if (Build.VERSION.SDK_INT >= 34) fullScreenAllowed = manager.canUseFullScreenIntent();
+        if (fullScreenAllowed) builder.setFullScreenIntent(fullScreen, true);
+        manager.notify(notificationId, builder.build());
+    }}
 
-# 3) IncomingCallActivity.java — экран поверх блокировки
-activity_java = '''package %(pkg)s;
+    private static String safe(String value) {{ return value == null ? "" : value; }}
+}}
+'''
+
+activity_java = f'''package {package};
 
 import android.app.Activity;
 import android.app.KeyguardManager;
@@ -103,37 +114,40 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class IncomingCallActivity extends Activity {
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+public class IncomingCallActivity extends Activity {{
+    private String callId = "";
+    private int notificationId = 0;
 
-        if (Build.VERSION.SDK_INT >= 27) {
+    @Override
+    protected void onCreate(Bundle state) {{
+        super.onCreate(state);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {{
             setShowWhenLocked(true);
             setTurnScreenOn(true);
-            KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-            if (km != null) km.requestDismissKeyguard(this, null);
-        } else {
-            getWindow().addFlags(
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
-        }
+            KeyguardManager manager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            if (manager != null) manager.requestDismissKeyguard(this, null);
+        }} else {{
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        }}
 
-        String fromName = getIntent().getStringExtra("fromName"); if (fromName == null) fromName = "Абонент";
-        String callType = getIntent().getStringExtra("callType"); if (callType == null) callType = "audio";
-        final String fromUid = getIntent().getStringExtra("fromUid");
-        final String callId = getIntent().getStringExtra("callId");
+        callId = safe(getIntent().getStringExtra("callId"));
+        notificationId = getIntent().getIntExtra("notificationId", 0);
+        if (callId.isEmpty()) {{ finish(); return; }}
+        String fromName = safe(getIntent().getStringExtra("fromName"));
+        String callType = safe(getIntent().getStringExtra("callType"));
+        if (fromName.isEmpty()) fromName = "Абонент";
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.parseColor("#0a0a0f"));
         root.setGravity(Gravity.CENTER);
         root.setPadding(48, 96, 48, 96);
+        root.setBackgroundColor(Color.parseColor("#0a0a0f"));
 
         TextView title = new TextView(this);
-        title.setText("Входящий " + ("video".equals(callType) ? "видеозвонок" : "звонок"));
+        title.setText("video".equals(callType) ? "Входящий видеозвонок" : "Входящий звонок");
         title.setTextColor(Color.parseColor("#00f0ff"));
         title.setTextSize(16);
         title.setGravity(Gravity.CENTER);
@@ -144,116 +158,135 @@ public class IncomingCallActivity extends Activity {
         name.setTextColor(Color.WHITE);
         name.setTextSize(34);
         name.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams nlp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        nlp.setMargins(0, 40, 0, 140);
-        name.setLayoutParams(nlp);
+        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        nameParams.setMargins(0, 40, 0, 140);
+        name.setLayoutParams(nameParams);
         root.addView(name);
 
-        LinearLayout btns = new LinearLayout(this);
-        btns.setOrientation(LinearLayout.HORIZONTAL);
-        btns.setGravity(Gravity.CENTER);
+        LinearLayout buttons = new LinearLayout(this);
+        buttons.setOrientation(LinearLayout.HORIZONTAL);
+        buttons.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        buttonParams.setMargins(24, 0, 24, 0);
 
         Button decline = new Button(this);
         decline.setText("Отклонить");
         decline.setTextColor(Color.WHITE);
         decline.setBackgroundColor(Color.parseColor("#ff003c"));
+        decline.setOnClickListener(view -> openApp("decline"));
 
         Button accept = new Button(this);
         accept.setText("Принять");
         accept.setTextColor(Color.BLACK);
         accept.setBackgroundColor(Color.parseColor("#3aff8f"));
+        accept.setOnClickListener(view -> openApp("accept"));
 
-        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        blp.setMargins(24, 0, 24, 0);
-
-        decline.setOnClickListener(v -> { cancelNotif(); finish(); });
-        accept.setOnClickListener(v -> {
-            cancelNotif();
-            Intent i = getPackageManager().getLaunchIntentForPackage(getPackageName());
-            if (i != null) {
-                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                i.setData(Uri.parse("nightcity://accept?from=" + (fromUid == null ? "" : fromUid) + "&callId=" + (callId == null ? "" : callId)));
-                startActivity(i);
-            }
-            finish();
-        });
-
-        btns.addView(decline, blp);
-        btns.addView(accept, blp);
-        root.addView(btns);
-
+        buttons.addView(decline, buttonParams);
+        buttons.addView(accept, buttonParams);
+        root.addView(buttons);
         setContentView(root);
-    }
+    }}
 
-    private void cancelNotif() {
-        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nm != null) nm.cancel(42);
-    }
-}
-''' % {'pkg': PKG}
+    private void openApp(String action) {{
+        cancelNotification();
+        Intent launch = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (launch != null) {{
+            Uri uri = new Uri.Builder().scheme("nightcity").authority(action).appendQueryParameter("callId", callId).build();
+            launch.setData(uri);
+            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(launch);
+        }}
+        finish();
+    }}
 
-open(os.path.join(pkg_path, 'CallMessagingService.java'), 'w', encoding='utf-8').write(service_java)
-open(os.path.join(pkg_path, 'IncomingCallActivity.java'), 'w', encoding='utf-8').write(activity_java)
-print('Java-файлы созданы')
+    private void cancelNotification() {{
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null && notificationId != 0) manager.cancel(notificationId);
+    }}
 
-# 4) патч AndroidManifest.xml
-man_path = os.path.join(APP, 'AndroidManifest.xml')
-man = open(man_path, encoding='utf-8').read()
+    private static String safe(String value) {{ return value == null ? "" : value; }}
+}}
+'''
 
-# разрешения
-perms = [
-    'android.permission.USE_FULL_SCREEN_INTENT',
-    'android.permission.WAKE_LOCK',
-    'android.permission.VIBRATE',
+(java_dir / "CallMessagingService.java").write_text(service_java, encoding="utf-8")
+(java_dir / "IncomingCallActivity.java").write_text(activity_java, encoding="utf-8")
+
+manifest_path = MAIN / "AndroidManifest.xml"
+manifest = manifest_path.read_text(encoding="utf-8")
+if "xmlns:tools" not in manifest:
+    manifest = manifest.replace(
+        '<manifest xmlns:android="http://schemas.android.com/apk/res/android">',
+        '<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">',
+        1,
+    )
+
+permissions = [
+    "android.permission.RECORD_AUDIO",
+    "android.permission.MODIFY_AUDIO_SETTINGS",
+    "android.permission.CAMERA",
+    "android.permission.POST_NOTIFICATIONS",
+    "android.permission.READ_CONTACTS",
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.USE_FULL_SCREEN_INTENT",
+    "android.permission.WAKE_LOCK",
+    "android.permission.VIBRATE",
 ]
-add_perms = ''
-for p in perms:
-    if p not in man:
-        add_perms += '    <uses-permission android:name="%s" />\n' % p
-if add_perms:
-    man = man.replace('<application', add_perms + '    <application', 1)
+permission_xml = "".join(
+    f'    <uses-permission android:name="{permission}" />\n'
+    for permission in permissions if permission not in manifest
+)
+if permission_xml:
+    manifest = manifest.replace("    <application", permission_xml + "    <application", 1)
 
-# сервис + activity внутри <application>
-inject = ''
-if 'CallMessagingService' not in man:
-    inject += '''        <service
+for feature in ["android.hardware.camera", "android.hardware.microphone"]:
+    if feature not in manifest:
+        manifest = manifest.replace("    <application", f'    <uses-feature android:name="{feature}" android:required="false" />\n    <application', 1)
+
+services = '''        <service
+            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
+            tools:node="remove" />
+        <service
             android:name=".CallMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-'''
-if 'IncomingCallActivity' not in man:
-    inject += '''        <activity
+        <activity
             android:name=".IncomingCallActivity"
-            android:exported="true"
+            android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTask"
             android:theme="@android:style/Theme.Material.NoActionBar" />
 '''
-if inject:
-    # вставить перед закрытием </application>
-    man = man.replace('</application>', inject + '    </application>', 1)
+# Always converge old generated manifests to the secure definitions above.
+manifest = re.sub(r'\s*<service\b(?=[^>]*android:name="\.CallMessagingService")[\s\S]*?</service>', '', manifest)
+manifest = re.sub(r'\s*<service\b(?=[^>]*android:name="com\.capacitorjs\.plugins\.pushnotifications\.MessagingService")[^>]*/>', '', manifest)
+manifest = re.sub(r'\s*<activity\b(?=[^>]*android:name="\.IncomingCallActivity")[^>]*/>', '', manifest)
+manifest = manifest.replace("    </application>", services + "    </application>", 1)
+manifest = re.sub(r'android:allowBackup="true"', 'android:allowBackup="false"', manifest, count=1)
+if "android:usesCleartextTraffic" not in manifest:
+    manifest = manifest.replace("android:allowBackup=\"false\"", "android:allowBackup=\"false\"\n        android:usesCleartextTraffic=\"false\"", 1)
+manifest_path.write_text(manifest, encoding="utf-8")
 
-open(man_path, 'w', encoding='utf-8').write(man)
-print('AndroidManifest.xml пропатчен')
+gradle_path = Path("android/app/build.gradle")
+gradle = gradle_path.read_text(encoding="utf-8")
+gradle = re.sub(r'versionCode\s+\d+', 'versionCode 2077210', gradle, count=1)
+gradle = re.sub(r'versionName\s+"[^"]+"', 'versionName "2.077.210"', gradle, count=1)
+gradle = gradle.replace(
+    'implementation "com.google.firebase:firebase-messaging:$firebaseMessagingVersion"',
+    'implementation "com.google.firebase:firebase-messaging:25.0.1"',
+)
+if 'firebase-messaging:25.0.1' not in gradle:
+    gradle = re.sub(
+        r"(dependencies\s*\{)",
+        r'\1\n    implementation "com.google.firebase:firebase-messaging:25.0.1"',
+        gradle,
+        count=1,
+    )
+gradle_path.write_text(gradle, encoding="utf-8")
 
-# 5) firebase-messaging на compile classpath приложения
-app_gradle = 'android/app/build.gradle'
-if os.path.exists(app_gradle):
-    g = open(app_gradle, encoding='utf-8').read()
-    if 'firebase-messaging' not in g:
-        g = re.sub(r'(dependencies\s*\{)',
-                   r"\1\n    implementation platform('com.google.firebase:firebase-bom:33.1.2')\n    implementation 'com.google.firebase:firebase-messaging'",
-                   g, count=1)
-        open(app_gradle, 'w', encoding='utf-8').write(g)
-        print('firebase-messaging (BoM) добавлен в app/build.gradle')
-    else:
-        print('firebase-messaging уже есть в app/build.gradle')
-else:
-    print('app/build.gradle не найден!')
-print('native-звонок внедрён успешно')
+print(f"Native incoming calls configured for {package}")

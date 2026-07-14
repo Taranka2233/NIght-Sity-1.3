@@ -1,0 +1,7 @@
+name = "nightcity-push"
+main = "worker.js"
+compatibility_date = "2026-07-13"
+
+[vars]
+FB_PROJECT_ID = "night-sity"
+ALLOWED_ORIGINS = "https://localhost,capacitor://localhost"
