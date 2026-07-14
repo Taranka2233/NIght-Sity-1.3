@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const file = new URL('../index.html', import.meta.url);
 let html = await readFile(file, 'utf8');
 
-html = html.replaceAll('2.077.202', '2.077.209').replaceAll('2.077.203', '2.077.209').replaceAll('2.077.204', '2.077.209').replaceAll('2.077.205', '2.077.209').replaceAll('2.077.206', '2.077.209').replaceAll('2.077.207', '2.077.209').replaceAll('2.077.208', '2.077.209');
+html = html.replaceAll('2.077.202', '2.077.210').replaceAll('2.077.203', '2.077.210').replaceAll('2.077.204', '2.077.210').replaceAll('2.077.205', '2.077.210').replaceAll('2.077.206', '2.077.210').replaceAll('2.077.207', '2.077.210').replaceAll('2.077.208', '2.077.210').replaceAll('2.077.209', '2.077.210');
 
 if (!html.includes('<script src="./firebase-bundle.js"></script>')) {
   const configStart = html.indexOf('<script>window.FIREBASE_CONFIG');
@@ -533,6 +533,21 @@ if (!html.includes('_wallDbOpen = () =>')) {
   html = html.replace(`      chatSettingsShow: !!active,`, `      chatSearchShow: !!(active && !active.isChannel && !active.isGroup),
       chatSettingsShow: !!active,`);
   html = html.replace(`  componentWillUnmount() { clearInterval(this.recTimer); clearInterval(this.callTimer); clearInterval(this.clockTimer); clearTimeout(this.replyTO); clearTimeout(this.copyTO); clearTimeout(this._persistTO); if (!FIREBASE_ENABLED) this._persistRaw(); if (this._msgUnsub) this._msgUnsub(); if (this._contactsUnsub) this._contactsUnsub(); if (this._chatsUnsub) this._chatsUnsub(); }`, `  componentWillUnmount() { clearInterval(this.recTimer); clearInterval(this.callTimer); clearInterval(this.clockTimer); clearTimeout(this.replyTO); clearTimeout(this.copyTO); clearTimeout(this._persistTO); this._persistRaw(); if (this._msgUnsub) this._msgUnsub(); if (this._contactsUnsub) this._contactsUnsub(); if (this._chatsUnsub) this._chatsUnsub(); }`);
+}
+
+// Large data-URL values are unreliable when passed through the template
+// engine's style attribute on Android WebView. Apply the image straight to
+// the message container after rendering instead.
+if (!html.includes('_applyCustomWallpaper = () =>')) {
+  const anchor = `  customWallRef = (el) => { this._customWallEl = el; this._sizeCustomWall(); };
+  _sizeCustomWall = () => { try { const el = this._customWallEl; if (!el) return; let host = (this.threadRef && this.threadRef.current); if (!host || !host.clientHeight) { host = el.parentNode; let g = 0; while (host && !host.clientHeight && g < 6) { host = host.parentNode; g++; } } const h = (host && host.clientHeight) || 480; el.style.height = h + 'px'; } catch (e) {} };`;
+  const helper = String.raw`
+  _applyCustomWallpaper = () => { const host = this.threadRef && this.threadRef.current, id = this.state.activeId, entry = id && (this.state.chatWalls || {})[id], image = id && (this.state.chatWallMedia || {})[id], imageText = String(image || ''), signature = String(id || '') + '|' + ((entry && entry.type) || 'dark') + '|' + imageText.length + '|' + imageText.slice(-48); if (!host || this._appliedWallSignature === signature) return; this._appliedWallSignature = signature; if (!entry || entry.type !== 'custom' || !image) return; try { const safe = imageText.replace(/["\\\n\r]/g, ''); host.style.backgroundColor = '#0a0a0f'; host.style.backgroundImage = \`linear-gradient(rgba(5,7,10,.30),rgba(5,7,10,.48)),url("\${safe}")\`; host.style.backgroundSize = 'cover'; host.style.backgroundPosition = 'center'; host.style.backgroundRepeat = 'no-repeat'; host.style.backgroundAttachment = 'scroll'; } catch (e) { console.error('Wallpaper render failed', e); } };
+`;
+  if (!html.includes(anchor)) throw new Error('Cannot add direct wallpaper renderer');
+  html = html.replace(anchor, anchor + helper);
+  html = html.replace('this._matrixEnsure(); this._sizeCustomWall();', 'this._matrixEnsure(); this._sizeCustomWall(); this._applyCustomWallpaper();');
+  html = html.replace('? `background-color:#0a0a0f;background-image:linear-gradient(rgba(5,7,10,.30),rgba(5,7,10,.48)),url("${_wallImgCss}");background-size:cover;background-position:center;background-repeat:no-repeat;background-attachment:scroll`', "? 'background:#0a0a0f'");
 }
 
 await writeFile(file, html);
