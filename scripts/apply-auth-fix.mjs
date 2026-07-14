@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const file = new URL('../index.html', import.meta.url);
 let html = await readFile(file, 'utf8');
 
-html = html.replaceAll('2.077.202', '2.077.206').replaceAll('2.077.203', '2.077.206').replaceAll('2.077.204', '2.077.206').replaceAll('2.077.205', '2.077.206');
+html = html.replaceAll('2.077.202', '2.077.207').replaceAll('2.077.203', '2.077.207').replaceAll('2.077.204', '2.077.207').replaceAll('2.077.205', '2.077.207').replaceAll('2.077.206', '2.077.207');
 
 if (!html.includes('<script src="./firebase-bundle.js"></script>')) {
   const configStart = html.indexOf('<script>window.FIREBASE_CONFIG');
@@ -257,6 +257,54 @@ if (!html.includes('const _wallImgCss = String(s.chatWallImg')) {
       ? \`background-color:#0a0a0f;background-image:linear-gradient(rgba(5,7,10,.30),rgba(5,7,10,.48)),url("\${_wallImgCss}");background-size:cover;background-position:center;background-repeat:no-repeat;background-attachment:scroll\``;
   if (!html.includes(oldWallBackground)) throw new Error('Cannot repair custom wallpaper: source block not found');
   html = html.replace(oldWallBackground, newWallBackground);
+}
+
+// Custom wallpapers are user data: restore the image itself (not only the
+// selected "custom" flag) after restart and persist it only after setState.
+if (!html.includes('chatWallImg: d.chatWallImg || null')) {
+  const restoreOld = "chatWall: d.chatWall || this.state.chatWall, chatFont:";
+  const restoreNew = "chatWall: d.chatWall || this.state.chatWall, chatWallImg: d.chatWallImg || null, chatFont:";
+  if (!html.includes(restoreOld)) throw new Error('Cannot restore saved custom wallpaper: session block not found');
+  html = html.replaceAll(restoreOld, restoreNew);
+}
+
+if (!html.includes("_applyWall = (img) => {\n    this.setState(\n      st => ({ chatWall: 'custom'")) {
+  const oldApplyWall = "  _applyWall = (img) => { this.setState(st => ({ chatWall: 'custom', chatWallImg: img, contacts: st.contacts.map(c => c.wall ? { ...c, wall: null } : c) })); try { this.persist(); } catch (e) {} this._toast('Фон установлен ✓'); };";
+  const newApplyWall = `  _applyWall = (img) => {
+    this.setState(
+      st => ({ chatWall: 'custom', chatWallImg: img, contacts: st.contacts.map(c => c.wall ? { ...c, wall: null } : c) }),
+      () => { try { this.persist(); } catch (e) {} this._toast('Фон установлен ✓'); }
+    );
+  };`;
+  if (!html.includes(oldApplyWall)) throw new Error('Cannot persist custom wallpaper: apply block not found');
+  html = html.replace(oldApplyWall, newApplyWall);
+}
+
+if (!html.includes('const maxEdge = 1280, maxPixels = 1600000;')) {
+  const oldResize = `                const maxW = 1280; let w = im.width || 1280, h = im.height || 1280;
+                if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+                const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+                cv.getContext('2d').drawImage(im, 0, 0, w, h);
+                this._applyWall(cv.toDataURL('image/jpeg', 0.85));`;
+  const newResize = `                const maxEdge = 1280, maxPixels = 1600000;
+                const srcW = im.width || maxEdge, srcH = im.height || maxEdge;
+                const scale = Math.min(1, maxEdge / srcW, maxEdge / srcH, Math.sqrt(maxPixels / (srcW * srcH)));
+                const w = Math.max(1, Math.round(srcW * scale)), h = Math.max(1, Math.round(srcH * scale));
+                const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+                cv.getContext('2d').drawImage(im, 0, 0, w, h);
+                this._applyWall(cv.toDataURL('image/jpeg', 0.80));`;
+  if (!html.includes(oldResize)) throw new Error('Cannot optimize custom wallpaper: image resize block not found');
+  html = html.replace(oldResize, newResize);
+}
+
+if (!html.includes('let _localUi = {}; try { _localUi = this.loadData(user.email) || {}; }')) {
+  const oldBackendUi = `      let _savedAliases = {}; try { _savedAliases = (this.loadData(user.email) || {}).aliases || {}; } catch (e) {}
+      this.setState({ screen: 'list', myUid: user.uid, myName: prof.name || (prof.handle || '@me').slice(1).toUpperCase(), myHandle: prof.handle || '@me', myEmail: user.email || '', myStatus: prof.status || this.state.myStatus, myPhone: prof.phone || '', myAvatar: prof.avatar || this.state.myAvatar || null, contacts: [], threads: {}, aliases: _savedAliases, authError: null, authInfo: null, authPass: '', codeSent: false });`;
+  const newBackendUi = `      let _localUi = {}; try { _localUi = this.loadData(user.email) || {}; } catch (e) {}
+      const _savedAliases = _localUi.aliases || {};
+      this.setState({ screen: 'list', myUid: user.uid, myName: prof.name || (prof.handle || '@me').slice(1).toUpperCase(), myHandle: prof.handle || '@me', myEmail: user.email || '', myStatus: prof.status || _localUi.myStatus || this.state.myStatus, myPhone: prof.phone || _localUi.myPhone || '', myAvatar: prof.avatar || _localUi.myAvatar || this.state.myAvatar || null, contacts: [], threads: {}, aliases: _savedAliases, chatWall: _localUi.chatWall || this.state.chatWall, chatWallImg: _localUi.chatWallImg || null, chatFont: _localUi.chatFont || this.state.chatFont, appIcon: _localUi.appIcon || this.state.appIcon, variant: _localUi.variant || this.state.variant, prefs: _localUi.prefs || this.state.prefs, blocked: _localUi.blocked || this.state.blocked, authError: null, authInfo: null, authPass: '', codeSent: false });`;
+  if (!html.includes(oldBackendUi)) throw new Error('Cannot restore backend custom wallpaper: profile block not found');
+  html = html.replace(oldBackendUi, newBackendUi);
 }
 
 if (!html.includes('threads: { ...s.threads, [id]: ((s.threads || {})[id] || []).map(m => ({ ...m })) }')) {

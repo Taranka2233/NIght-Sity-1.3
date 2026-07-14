@@ -62,13 +62,13 @@ jobs:
       - name: Check packaged application
         run: |
           test -s android/app/build/outputs/apk/debug/app-debug.apk
-          unzip -p android/app/build/outputs/apk/debug/app-debug.apk assets/public/index.html | grep -q 'ВЕРСИЯ 2.077.206'
+          unzip -p android/app/build/outputs/apk/debug/app-debug.apk assets/public/index.html | grep -q 'ВЕРСИЯ 2.077.207'
           unzip -p android/app/build/outputs/apk/debug/app-debug.apk assets/public/firebase-bundle.js | grep -q 'WEBVIEW_XHR_FAILED'
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: night-city-2.077.206-debug-apk
+          name: night-city-2.077.207-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
