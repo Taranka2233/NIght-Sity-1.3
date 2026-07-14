@@ -482,11 +482,12 @@ if (!html.includes('_wallDbOpen = () =>')) {
 `;
   if (!html.includes(anchor)) throw new Error('Cannot add IndexedDB wallpaper helpers');
   html = html.replace(anchor, anchor + helpers);
-  const oldPersist = `  _persistRaw = () => { try { const k = this.dataKey(); if (!k) return; const s = this.state; localStorage.setItem(k, JSON.stringify({ threads: s.threads, contacts: s.contacts, myStatus: s.myStatus, prefs: s.prefs, blocked: s.blocked, chatWalls: s.chatWalls, chatFont: s.chatFont, appIcon: s.appIcon, variant: s.variant, myEmail: s.myEmail, myPhone: s.myPhone, myRank: s.myRank, myAvatar: s.myAvatar, myName: s.myName, myHandle: s.myHandle, aliases: s.aliases })); } catch (e) {} };
-  persist = () => { clearTimeout(this._persistTO); this._persistTO = setTimeout(this._persistRaw, 1200); };`;
+  const oldPersistBase = `  _persistRaw = () => { try { const k = this.dataKey(); if (!k) return; const s = this.state; localStorage.setItem(k, JSON.stringify({ threads: s.threads, contacts: s.contacts, myStatus: s.myStatus, prefs: s.prefs, blocked: s.blocked, chatWalls: s.chatWalls, chatFont: s.chatFont, appIcon: s.appIcon, variant: s.variant, myEmail: s.myEmail, myPhone: s.myPhone, myRank: s.myRank, myAvatar: s.myAvatar, myName: s.myName, myHandle: s.myHandle, aliases: s.aliases })); } catch (e) {} };
+  persist = () => { clearTimeout(this._persistTO); this._persistTO = setTimeout(this._persistRaw, `;
+  const oldPersist = [oldPersistBase + '400); };', oldPersistBase + '1200); };'].find(value => html.includes(value));
   const newPersist = `  _persistRaw = () => { try { const k = this.dataKey(); if (!k) return true; const s = this.state; localStorage.setItem(k, JSON.stringify({ threads: s.threads, contacts: s.contacts, myStatus: s.myStatus, prefs: s.prefs, blocked: s.blocked, chatWalls: this._wallMeta(s.chatWalls), chatFont: s.chatFont, appIcon: s.appIcon, variant: s.variant, myEmail: s.myEmail, myPhone: s.myPhone, myRank: s.myRank, myAvatar: s.myAvatar, myName: s.myName, myHandle: s.myHandle, aliases: s.aliases })); return true; } catch (e) { console.error('Local data persistence failed', e); return false; } };
   persist = () => { clearTimeout(this._persistTO); this._persistTO = setTimeout(this._persistRaw, 1200); };`;
-  if (!html.includes(oldPersist)) throw new Error('Cannot separate wallpaper metadata');
+  if (!oldPersist) throw new Error('Cannot separate wallpaper metadata');
   html = html.replace(oldPersist, newPersist);
   html = html.replaceAll('chatWalls: d.chatWalls || {}, chatFont:', 'chatWalls: this._wallMeta(d.chatWalls), chatWallMedia: this._wallLegacyMedia(d.chatWalls), chatFont:');
   html = html.replaceAll('const d = this.loadData(email) || {};', 'const d = this.loadData(email) || {}; this._migrateLegacyWalls(d.chatWalls);');
