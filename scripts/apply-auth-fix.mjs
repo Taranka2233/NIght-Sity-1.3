@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const file = new URL('../index.html', import.meta.url);
 let html = await readFile(file, 'utf8');
 
-html = html.replaceAll('2.077.202', '2.077.205').replaceAll('2.077.203', '2.077.205').replaceAll('2.077.204', '2.077.205');
+html = html.replaceAll('2.077.202', '2.077.206').replaceAll('2.077.203', '2.077.206').replaceAll('2.077.204', '2.077.206').replaceAll('2.077.205', '2.077.206');
 
 if (!html.includes('<script src="./firebase-bundle.js"></script>')) {
   const configStart = html.indexOf('<script>window.FIREBASE_CONFIG');
@@ -238,5 +238,41 @@ if (!html.includes("_pushErrorMessage = (code, status) =>")) {
 `;
   html = html.slice(0, start) + replacement + html.slice(end);
 }
+
+if (!html.includes('grid-template-columns:38px repeat(2,minmax(0,1fr))')) {
+  const oldSelectionBar = '<div style="flex:none;display:flex;gap:6px;align-items:center;padding:8px 12px;background:#12121a;border-bottom:1px solid #00f0ff">';
+  const newSelectionBar = '<div style="flex:none;display:grid;grid-template-columns:38px repeat(2,minmax(0,1fr));gap:6px;align-items:stretch;padding:8px 12px;background:#12121a;border-bottom:1px solid #00f0ff">';
+  if (!html.includes(oldSelectionBar)) throw new Error('Cannot repair selection toolbar: source block not found');
+  html = html.replace(oldSelectionBar, newSelectionBar);
+}
+
+const brokenCustomWall = '            <sc-if value="{{ customWallOn }}"><div style="position:sticky;top:0;left:0;height:0;z-index:0;pointer-events:none;overflow:visible"><img src="{{ chatWallImgSrc }}" ref="{{ customWallRef }}" style="position:absolute;top:0;left:0;width:100%;object-fit:cover;object-position:center"/></div></sc-if>\n';
+html = html.replace(brokenCustomWall, '');
+
+if (!html.includes('const _wallImgCss = String(s.chatWallImg')) {
+  const oldWallBackground = `    const wallBg = (_wallKey === 'custom' && s.chatWallImg)
+      ? 'background:#0a0a0f'`;
+  const newWallBackground = `    const _wallImgCss = String(s.chatWallImg || '').replace(/["\\\\\\n\\r]/g, '');
+    const wallBg = (_wallKey === 'custom' && _wallImgCss)
+      ? \`background-color:#0a0a0f;background-image:linear-gradient(rgba(5,7,10,.30),rgba(5,7,10,.48)),url("\${_wallImgCss}");background-size:cover;background-position:center;background-repeat:no-repeat;background-attachment:scroll\``;
+  if (!html.includes(oldWallBackground)) throw new Error('Cannot repair custom wallpaper: source block not found');
+  html = html.replace(oldWallBackground, newWallBackground);
+}
+
+if (!html.includes('threads: { ...s.threads, [id]: ((s.threads || {})[id] || []).map(m => ({ ...m })) }')) {
+  const oldToggle = `  togglePostSel = (mid) => { const k = String(mid); this.setState(s => { const cur = s.selPosts.map(String); return ({ selPosts: cur.includes(k) ? cur.filter(x => x !== k) : [...cur, k], threads: Object.assign({}, s.threads, { [this.state.activeId]: [ ...((s.threads || {})[this.state.activeId] || []) ] }) }); }); };`;
+  const newToggle = `  togglePostSel = (mid) => { const k = String(mid); this.setState(s => { const cur = s.selPosts.map(String); const id = s.activeId; return ({ selPosts: cur.includes(k) ? cur.filter(x => x !== k) : [...cur, k], threads: { ...s.threads, [id]: ((s.threads || {})[id] || []).map(m => ({ ...m })) } }); }); };`;
+  if (!html.includes(oldToggle)) throw new Error('Cannot repair selection toggle: source block not found');
+  html = html.replace(oldToggle, newToggle);
+}
+
+if (!html.includes('return { selPosts: [], threads: { ...s.threads')) {
+  const oldClear = `  clearPostSel = () => { try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch (e) {} this.setState(s => ({ selPosts: [], threads: Object.assign({}, s.threads, { [this.state.activeId]: [ ...((s.threads || {})[this.state.activeId] || []) ] }) })); };`;
+  const newClear = `  clearPostSel = () => { try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch (e) {} this.setState(s => { const id = s.activeId; return { selPosts: [], threads: { ...s.threads, [id]: ((s.threads || {})[id] || []).map(m => ({ ...m })) } }; }, () => { try { this.forceUpdate(); } catch (e) {} }); };`;
+  if (!html.includes(oldClear)) throw new Error('Cannot repair selection clearing: source block not found');
+  html = html.replace(oldClear, newClear);
+}
+
+html = html.replace('isPostSelected: s.selPosts.includes(m.id),', 'isPostSelected: s.selPosts.map(String).includes(String(m.id)),');
 
 await writeFile(file, html);
