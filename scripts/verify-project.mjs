@@ -29,7 +29,7 @@ function expect(condition, message) {
 }
 
 expect(htmlSize > 1_000_000, 'index.html is not the complete application');
-expect(html.includes('ВЕРСИЯ 2.077.207'), 'unexpected client version');
+expect(html.includes('ВЕРСИЯ 2.077.208'), 'unexpected client version');
 expect(!html.includes('night-city-net-demo'), 'demo client must never be packaged');
 expect(html.includes("import('./firebase-bundle.js')"), 'Firebase must load from the local bundle');
 expect(html.includes('<script src="./firebase-bundle.js"></script>'), 'Firebase bundle must preload for older Android WebView');
@@ -43,6 +43,9 @@ expect(html.includes('_pushErrorMessage') && html.includes('target_not_registere
 expect(html.includes('PUSH_TOKEN_NOT_SAVED'), 'push-token persistence verification is missing');
 expect(html.includes('background-image:linear-gradient') && html.includes('const _wallImgCss'), 'custom wallpaper must be a chat background');
 expect(!html.includes('position:sticky;top:0;left:0;height:0;z-index:0;pointer-events:none;overflow:visible"><img src="{{ chatWallImgSrc }}"'), 'custom wallpaper overlay must not cover messages');
+expect(html.includes('chatWalls: {}') && html.includes('pickChatWallpaper = () =>'), 'per-chat wallpaper state is missing');
+expect(html.includes('ВЫБРАТЬ ИЗОБРАЖЕНИЕ ДЛЯ ЭТОГО ЧАТА'), 'direct chat wallpaper control is missing');
+expect(!html.includes("{ kind: 'choice', label: 'Фон'"), 'global wallpaper setting must be removed');
 expect(html.includes('grid-template-columns:38px repeat(2,minmax(0,1fr))'), 'selection toolbar must fit narrow screens');
 expect(html.includes('this.forceUpdate()') && html.includes('return { selPosts: [], threads:'), 'selection clearing refresh is missing');
 expect(!html.includes("saveProfile(this._myUid, { fcmToken"), 'FCM token is still stored in the public profile');
@@ -51,7 +54,7 @@ expect(rules.includes('request.resource.data.from == request.auth.uid'), 'messag
 expect(rules.includes('match /private/{document}'), 'private user documents are not protected');
 expect(rules.includes('inviteDecision()') && html.includes('acceptGroupInvite'), 'explicit group invitation flow is missing');
 expect(capacitor.appId === 'net.nightcity.chat', 'unexpected Capacitor appId');
-expect(androidGradle.includes('versionCode 2077207') && androidGradle.includes('versionName "2.077.207"'), 'unexpected Android version');
+expect(androidGradle.includes('versionCode 2077208') && androidGradle.includes('versionName "2.077.208"'), 'unexpected Android version');
 
 const androidClient = google.client?.find((entry) => entry.client_info?.android_client_info?.package_name === capacitor.appId);
 expect(androidClient, 'google-services.json does not contain the Capacitor appId');

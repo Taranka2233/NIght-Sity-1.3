@@ -7,8 +7,8 @@ android {
         applicationId "net.nightcity.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2077207
-        versionName "2.077.207"
+        versionCode 2077208
+        versionName "2.077.208"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const file = new URL('../index.html', import.meta.url);
 let html = await readFile(file, 'utf8');
 
-html = html.replaceAll('2.077.202', '2.077.207').replaceAll('2.077.203', '2.077.207').replaceAll('2.077.204', '2.077.207').replaceAll('2.077.205', '2.077.207').replaceAll('2.077.206', '2.077.207');
+html = html.replaceAll('2.077.202', '2.077.208').replaceAll('2.077.203', '2.077.208').replaceAll('2.077.204', '2.077.208').replaceAll('2.077.205', '2.077.208').replaceAll('2.077.206', '2.077.208').replaceAll('2.077.207', '2.077.208');
 
 if (!html.includes('<script src="./firebase-bundle.js"></script>')) {
   const configStart = html.indexOf('<script>window.FIREBASE_CONFIG');
@@ -249,7 +249,7 @@ if (!html.includes('grid-template-columns:38px repeat(2,minmax(0,1fr))')) {
 const brokenCustomWall = '            <sc-if value="{{ customWallOn }}"><div style="position:sticky;top:0;left:0;height:0;z-index:0;pointer-events:none;overflow:visible"><img src="{{ chatWallImgSrc }}" ref="{{ customWallRef }}" style="position:absolute;top:0;left:0;width:100%;object-fit:cover;object-position:center"/></div></sc-if>\n';
 html = html.replace(brokenCustomWall, '');
 
-if (!html.includes('const _wallImgCss = String(s.chatWallImg')) {
+if (!html.includes('const _wallImgCss = String(s.chatWallImg') && !html.includes('pickChatWallpaper = () =>')) {
   const oldWallBackground = `    const wallBg = (_wallKey === 'custom' && s.chatWallImg)
       ? 'background:#0a0a0f'`;
   const newWallBackground = `    const _wallImgCss = String(s.chatWallImg || '').replace(/["\\\\\\n\\r]/g, '');
@@ -261,14 +261,14 @@ if (!html.includes('const _wallImgCss = String(s.chatWallImg')) {
 
 // Custom wallpapers are user data: restore the image itself (not only the
 // selected "custom" flag) after restart and persist it only after setState.
-if (!html.includes('chatWallImg: d.chatWallImg || null')) {
+if (!html.includes('chatWallImg: d.chatWallImg || null') && !html.includes('chatWalls: {},')) {
   const restoreOld = "chatWall: d.chatWall || this.state.chatWall, chatFont:";
   const restoreNew = "chatWall: d.chatWall || this.state.chatWall, chatWallImg: d.chatWallImg || null, chatFont:";
   if (!html.includes(restoreOld)) throw new Error('Cannot restore saved custom wallpaper: session block not found');
   html = html.replaceAll(restoreOld, restoreNew);
 }
 
-if (!html.includes("_applyWall = (img) => {\n    this.setState(\n      st => ({ chatWall: 'custom'")) {
+if (!html.includes('pickChatWallpaper = () =>') && !html.includes("_applyWall = (img) => {\n    this.setState(\n      st => ({ chatWall: 'custom'")) {
   const oldApplyWall = "  _applyWall = (img) => { this.setState(st => ({ chatWall: 'custom', chatWallImg: img, contacts: st.contacts.map(c => c.wall ? { ...c, wall: null } : c) })); try { this.persist(); } catch (e) {} this._toast('Фон установлен ✓'); };";
   const newApplyWall = `  _applyWall = (img) => {
     this.setState(
@@ -322,5 +322,134 @@ if (!html.includes('return { selPosts: [], threads: { ...s.threads')) {
 }
 
 html = html.replace('isPostSelected: s.selPosts.includes(m.id),', 'isPostSelected: s.selPosts.map(String).includes(String(m.id)),');
+
+// Version 2.077.208: wallpaper belongs to a concrete chat, never to the
+// whole account. This also survives Firebase contact-list rebuilds because it
+// is stored in a local map keyed by chat ID.
+if (!html.includes('chatWalls: {},')) {
+  const stateOld = `    chatWall: 'dark',
+    chatWallImg: null,`;
+  if (!html.includes(stateOld)) throw new Error('Cannot create per-chat wallpaper state');
+  html = html.replace(stateOld, '    chatWalls: {},');
+
+  html = html.replaceAll('chatWall: s.chatWall, chatWallImg: s.chatWallImg, ', 'chatWalls: s.chatWalls, ');
+  html = html.replaceAll('chatWall: d.chatWall || this.state.chatWall, chatWallImg: d.chatWallImg || null, chatFont:', 'chatWalls: d.chatWalls || {}, chatFont:');
+  html = html.replace('chatWall: _localUi.chatWall || this.state.chatWall, chatWallImg: _localUi.chatWallImg || null, chatFont:', 'chatWalls: _localUi.chatWalls || {}, chatFont:');
+
+  const pickerStart = html.indexOf("  _applyWall = (img) => {");
+  const pickerEnd = pickerStart >= 0 ? html.indexOf('  _deviceInfo = () => {', pickerStart) : -1;
+  if (pickerStart < 0 || pickerEnd < 0) throw new Error('Cannot replace global wallpaper picker');
+  const perChatPicker = String.raw`  _setChatWallpaperImage = (chatId, img) => {
+    if (!chatId || !img) return;
+    this.setState(
+      st => ({ chatMenu: false, chatWalls: { ...(st.chatWalls || {}), [chatId]: { type: 'custom', image: img } } }),
+      () => { try { this.persist(); } catch (e) {} this._toast('Фон установлен для этого чата ✓'); }
+    );
+  };
+  pickChatWallpaper = () => {
+    const chatId = this.state.activeId;
+    if (!chatId) return;
+    try {
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*';
+      inp.style.position = 'fixed'; inp.style.left = '-9999px'; inp.style.top = '0';
+      inp.onchange = () => {
+        const f = inp.files && inp.files[0];
+        try { if (inp.parentNode) inp.parentNode.removeChild(inp); } catch (e) {}
+        if (!f) return;
+        const isGif = /gif/i.test(f.type || '');
+        const r = new FileReader();
+        r.onload = () => {
+          const data = r.result;
+          if (isGif) { this._setChatWallpaperImage(chatId, data); return; }
+          try {
+            const im = new Image();
+            im.onload = () => {
+              try {
+                const maxEdge = 1280, maxPixels = 1600000;
+                const srcW = im.width || maxEdge, srcH = im.height || maxEdge;
+                const scale = Math.min(1, maxEdge / srcW, maxEdge / srcH, Math.sqrt(maxPixels / (srcW * srcH)));
+                const w = Math.max(1, Math.round(srcW * scale)), h = Math.max(1, Math.round(srcH * scale));
+                const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+                cv.getContext('2d').drawImage(im, 0, 0, w, h);
+                this._setChatWallpaperImage(chatId, cv.toDataURL('image/jpeg', 0.80));
+              } catch (e) { this._setChatWallpaperImage(chatId, data); }
+            };
+            im.onerror = () => this._setChatWallpaperImage(chatId, data);
+            im.src = data;
+          } catch (e) { this._setChatWallpaperImage(chatId, data); }
+        };
+        r.onerror = () => this._toast('Не удалось прочитать файл');
+        r.readAsDataURL(f);
+      };
+      document.body.appendChild(inp);
+      inp.click();
+    } catch (e) {}
+  };
+`;
+  html = html.slice(0, pickerStart) + perChatPicker + html.slice(pickerEnd);
+
+  const oldSetter = `  setChatWall = (w) => this.setState(s => ({ contacts: s.contacts.map(c => c.id === s.activeId ? { ...c, wall: w } : c) }));`;
+  const newSetter = `  setChatWall = (type) => {
+    const chatId = this.state.activeId;
+    if (!chatId) return;
+    this.setState(s => ({ chatWalls: { ...(s.chatWalls || {}), [chatId]: { type } } }), () => { try { this.persist(); } catch (e) {} });
+  };
+  clearChatWallpaper = () => this.setChatWall('dark');`;
+  if (!html.includes(oldSetter)) throw new Error('Cannot replace chat wallpaper setter');
+  html = html.replace(oldSetter, newSetter);
+
+  html = html.replace(`      const _bwActive = this.state.contacts.find(c => c.id === this.state.activeId) || {}; const _bwKey = (_bwActive.wall && !_bwActive.isChannel && !_bwActive.isGroup) ? _bwActive.wall : this.state.chatWall; const _busyWall = (_bwKey === 'custom' || _bwKey === 'matrix');`, `      const _bwKey = ((this.state.chatWalls || {})[this.state.activeId] || {}).type || 'dark'; const _busyWall = (_bwKey === 'custom' || _bwKey === 'matrix');`);
+  const oldWallHead = `    const _wallKey = (active && !active.isChannel && !active.isGroup && active.wall) ? active.wall : s.chatWall;
+    this._lastWallKey = _wallKey;
+    const _wallImgCss = String(s.chatWallImg || '').replace(/["\\\\\\n\\r]/g, '');`;
+  const newWallHead = `    const _wallEntry = (active && s.chatWalls && s.chatWalls[active.id]) || { type: 'dark' };
+    const _wallKey = _wallEntry.type || 'dark';
+    this._lastWallKey = _wallKey;
+    const _wallImgCss = String(_wallEntry.image || '').replace(/["\\\\\\n\\r]/g, '');`;
+  if (!html.includes(oldWallHead)) throw new Error('Cannot use per-chat wallpaper in thread');
+  html = html.replace(oldWallHead, newWallHead);
+
+  html = html.replace(`      chatSettingsShow: !!(active && !active.isChannel && !active.isGroup),
+      chatMenuOpen: !!(s.chatMenu && active && !active.isChannel && !active.isGroup),`, `      chatSettingsShow: !!active,
+      chatMenuOpen: !!(s.chatMenu && active),
+      chatMenuPersonal: !!(active && !active.isChannel && !active.isGroup),`);
+  const oldWallProps = `      wallDark: () => this.setChatWall('dark'), wallGrid: () => this.setChatWall('grid'), wallRed: () => this.setChatWall('red'),
+      wallCur: (active && active.wall) ? active.wall : 'dark',
+      wallStyleDark: 'flex:1;height:44px;cursor:pointer;background:#0a0a0f;border:2px solid ' + (((active && active.wall) || 'dark') === 'dark' ? 'var(--nc-accent)' : '#23232e'),
+      wallStyleGrid: 'flex:1;height:44px;cursor:pointer;background-color:#0a0a0f;background-image:repeating-linear-gradient(90deg,rgba(0,240,255,.15) 0 1px,transparent 1px 8px),repeating-linear-gradient(0deg,rgba(0,240,255,.12) 0 1px,transparent 1px 8px);border:2px solid ' + ((active && active.wall) === 'grid' ? 'var(--nc-accent)' : '#23232e'),
+      wallStyleRed: 'flex:1;height:44px;cursor:pointer;background:radial-gradient(120% 80% at 50% 0%,#1a070d 0%,#0a0a0f 65%);border:2px solid ' + ((active && active.wall) === 'red' ? 'var(--nc-accent)' : '#23232e'),`;
+  const newWallProps = `      wallDark: () => this.setChatWall('dark'), wallGrid: () => this.setChatWall('grid'), wallRed: () => this.setChatWall('red'), pickChatWallpaper: this.pickChatWallpaper, clearChatWallpaper: this.clearChatWallpaper,
+      wallCur: (((s.chatWalls || {})[s.activeId] || {}).type || 'dark'),
+      chatHasOwnWallpaper: ((((s.chatWalls || {})[s.activeId] || {}).type || '') === 'custom'),
+      wallStyleDark: 'flex:1;height:44px;cursor:pointer;background:#0a0a0f;border:2px solid ' + (((((s.chatWalls || {})[s.activeId] || {}).type || 'dark') === 'dark') ? 'var(--nc-accent)' : '#23232e'),
+      wallStyleGrid: 'flex:1;height:44px;cursor:pointer;background-color:#0a0a0f;background-image:repeating-linear-gradient(90deg,rgba(0,240,255,.15) 0 1px,transparent 1px 8px),repeating-linear-gradient(0deg,rgba(0,240,255,.12) 0 1px,transparent 1px 8px);border:2px solid ' + (((((s.chatWalls || {})[s.activeId] || {}).type || '') === 'grid') ? 'var(--nc-accent)' : '#23232e'),
+      wallStyleRed: 'flex:1;height:44px;cursor:pointer;background:radial-gradient(120% 80% at 50% 0%,#1a070d 0%,#0a0a0f 65%);border:2px solid ' + (((((s.chatWalls || {})[s.activeId] || {}).type || '') === 'red') ? 'var(--nc-accent)' : '#23232e'),`;
+  if (!html.includes(oldWallProps)) throw new Error('Cannot expose per-chat wallpaper controls');
+  html = html.replace(oldWallProps, newWallProps);
+
+  html = html.replace(`              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#5a5a66;letter-spacing:1px;margin-bottom:6px">// ОБОИ ЧАТА</div>`, `              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#5a5a66;letter-spacing:1px;margin-bottom:6px">// ФОН ЭТОГО ЧАТА</div>`);
+  const menuInsert = `              </div>
+              <button onclick="{{ toggleChatMute }}"`;
+  const menuReplacement = `              </div>
+              <button onclick="{{ pickChatWallpaper }}" style="width:100%;padding:12px;margin-bottom:8px;background:rgba(0,240,255,.08);border:1px solid #00f0ff;color:#00f0ff;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;text-align:left">▧ ВЫБРАТЬ ИЗОБРАЖЕНИЕ ДЛЯ ЭТОГО ЧАТА</button>
+              <sc-if value="{{ chatHasOwnWallpaper }}"><button onclick="{{ clearChatWallpaper }}" style="width:100%;padding:10px;margin-bottom:8px;background:transparent;border:1px solid #6a6a76;color:#a8a8b2;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;cursor:pointer;text-align:left">✕ УБРАТЬ СВОЙ ФОН</button></sc-if>
+              <sc-if value="{{ chatMenuPersonal }}">
+              <button onclick="{{ toggleChatMute }}"`;
+  if (!html.includes(menuInsert)) throw new Error('Cannot add chat wallpaper menu button');
+  html = html.replace(menuInsert, menuReplacement);
+  html = html.replace(`              <button onclick="{{ toggleBlock }}" style="width:100%;padding:12px;background:transparent;border:1px solid #ff003c;color:#ff003c;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;text-align:left">{{ blockLabel }}</button>
+            </div>`, `              <button onclick="{{ toggleBlock }}" style="width:100%;padding:12px;background:transparent;border:1px solid #ff003c;color:#ff003c;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;text-align:left">{{ blockLabel }}</button>
+              </sc-if>
+            </div>`);
+
+  html = html.replace(`        { label: 'Оформление чатов', sub: 'обои, размер шрифта', icon: '▤', color: '#fcee0a', key: 'chats' },`, `        { label: 'Вид сообщений', sub: 'стиль, размер шрифта, иконка', icon: '▤', color: '#fcee0a', key: 'chats' },`);
+  html = html.replace(`      chats: { title: 'ОФОРМЛЕНИЕ ЧАТОВ', rows: [
+        { kind: 'chatpreview', label: '' },
+        { kind: 'head', label: '// ОБОИ ЧАТА' },
+        { kind: 'choice', label: 'Фон', opts: [['dark', 'ТЬМА'], ['grid', 'СЕТКА'], ['red', 'БАГРОВЫЙ'], ['matrix', 'МАТРИЦА'], ['synth', 'СИНТ'], ['circuit', 'СХЕМА'], ['custom', 'СВОЙ']], cur: s.chatWall, set: (v) => v === 'custom' ? this.pickWallpaper() : this.setState(st => ({ chatWall: v, contacts: st.contacts.map(c => c.wall ? { ...c, wall: null } : c) }), this.persist) },`, `      chats: { title: 'ВИД СООБЩЕНИЙ', rows: [`);
+  html = html.replace(`this._faq(3, 'Как сменить обои чата или поставить своё фото?', 'Оформление чатов → «Фон». Вариант СВОЙ откроет выбор фото или GIF из телефона. МАТРИЦА — анимированный падающий код.'),`, `this._faq(3, 'Как сменить обои чата или поставить своё фото?', 'Открой нужный чат → три точки вверху → «Выбрать изображение для этого чата». Фон сохраняется отдельно для каждого диалога, группы или канала.'),`);
+  html = html.replace(`this._faq(6, 'Как сменить иконку приложения?', 'Оформление чатов → «Иконка приложения». Выбери из 10 вариантов и нажми «Сохранить». Работает в установленном APK.'),`, `this._faq(6, 'Как сменить иконку приложения?', 'Настройки → «Вид сообщений» → «Иконка приложения». Выбери из 10 вариантов и нажми «Сохранить». Работает в установленном APK.'),`);
+}
 
 await writeFile(file, html);
